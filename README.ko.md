@@ -44,15 +44,16 @@
 
 ## 증거 (Proof)
 
-같은 프롬프트·같은 모델·같은 스타터 — **유일한 변수는 플러그인.**
+같은 프롬프트·같은 모델·같은 스타터 — **유일한 변수는 플러그인**(격리된 헤드리스 2회 실행,
+`--setting-sources project` ± 플러그인 — 다른 어떤 것도 양쪽을 돕지 못하게).
 
-<p align="center"><img src="./docs/before-after.png" width="900" alt="플러그인 없음 vs 있음 — 있음 쪽이 차분하고 액센트 하나, 정적 패널, 단일 모션 서명"></p>
-<p align="center"><em>같은 히어로를 만든 격리된 헤드리스 Claude Code 2회 실행. 없음: 그라디언트 헤드라인·빛나는 CTA·무한 스피너·곳곳의 앰버. 있음: 단색 헤드라인·절제된 액센트 하나·정적 패널 — 그리고 단일 <code>motion.ts</code> 서명.</em></p>
+<p align="center"><img src="./docs/before-after.png" width="900" alt="플러그인 없음 vs UIForge — UIForge는 중앙정렬 SaaS 템플릿을 깨고 비대칭 에디토리얼 레이아웃·단색 헤드라인·절제된 액센트 하나로"></p>
+<p align="center"><em>같은 랜딩 상단(nav + hero + features) 제작. 없음: 중앙정렬 SaaS 템플릿 — 그라디언트 헤드라인·전부 대칭·큰 빈 여백. UIForge: 비대칭 에디토리얼 레이아웃 — 좌측 정렬 위계·절제된 액센트 하나·단색(그라디언트 아님) 헤드라인·페이지 <code>&lt;title&gt;</code> 설정.</em></p>
 
-모션 레이어만 계측: 애니메이션 요소 **5 vs 13**, 무한 루프 **0 vs 3**, reduced-motion
-경로 **1 vs 0**, 단일 `motion.ts` 서명 **1 vs 0** — 전 항목에서 논지 그대로. 이게 왜
-중요한가: **aesthetic-usability effect**(Kurosu & Kashimura, 1995) — 아름다운 UI는 더
-쓰기 쉽다고 *인식*되고 더 큰 신뢰를 얻는다.
+플러그인의 가장 크고 눈에 띄는 효과는 **프롬프트로 고치기 가장 어려운 축 — 레이아웃과
+위계**다: 중앙정렬 템플릿을 깨고, 그라디언트 헤드라인을 버리고(그라디언트 사용 **14 → 5**),
+관점 하나에 커밋한다. 왜 중요한가: **aesthetic-usability effect**(Kurosu & Kashimura,
+1995) — 아름다운 UI는 더 쓰기 쉽다고 *인식*되고 더 큰 신뢰를 얻는다.
 
 ## 포지(forge) 파이프라인
 

@@ -54,16 +54,20 @@
 
 ## Proof
 
-Same prompt, same model, same starter — **the only variable is the plugin.**
+Same prompt, same model, same starter — **the only variable is the plugin** (two
+isolated headless Claude Code runs, `--setting-sources project` ± the plugin, so
+nothing else can help either side).
 
-<p align="center"><img src="./docs/before-after.png" width="900" alt="Before/after: without the plugin vs with it — the plugin-built hero is calmer, uses one accent, a static panel, and a single motion signature"></p>
-<p align="center"><em>Two isolated headless Claude Code runs building the same hero. Without the plugin: gradient headline, glowing CTA, an infinite spinner, amber everywhere. With it: solid headline, one accent used sparingly, a static panel — and a single <code>motion.ts</code> signature.</em></p>
+<p align="center"><img src="./docs/before-after.png" width="900" alt="Before/after: no plugin vs UIForge — UIForge breaks the centered SaaS template into an asymmetric editorial layout with a solid headline and one restrained accent"></p>
+<p align="center"><em>Building the same landing top (nav + hero + features). Without the plugin: the centered SaaS template — gradient headline text, everything symmetric, a big empty middle. With UIForge: an asymmetric, editorial layout — left-aligned confident hierarchy, one restrained accent, a solid (not gradient) headline, and the page <code>&lt;title&gt;</code> set.</em></p>
 
-Measured on the motion layer alone: **5 vs 13** animated elements, **0 vs 3**
-infinite loops, a reduced-motion path (**1 vs 0**), and a single emitted
-`motion.ts` signature (**1 vs 0**) — the plugin's thesis, in every category. Why
+The plugin's largest, most visible effect is on the axis hardest to fix by
+prompting — **layout & hierarchy**: it breaks the centered template, drops the
+gradient headline (gradient uses **14 → 5**), and commits to a point of view. Why
 it matters: the **aesthetic-usability effect** (Kurosu & Kashimura, 1995) shows a
-beautiful interface is *perceived* as more usable and earns more trust.
+beautiful interface is *perceived* as more usable and earns more trust. (An
+earlier motion-only run measured the same discipline on the animation layer:
+[the experiment](https://github.com/TaewoooPark/UIForge#proof) is reproducible.)
 
 ## The forge
 
