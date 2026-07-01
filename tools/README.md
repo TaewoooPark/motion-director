@@ -40,4 +40,28 @@ value derives from a token, on the 8px grid, with a real (non-default) font and 
 accent. Emit it **before** any component.
 
 The two tools are a pair: the template gives the model a constrained vocabulary,
-the linter rejects anything that steps outside it.
+the linter rejects anything that steps outside it. Or skip the blank page and
+start from a ready **kit** (`kits/`).
+
+## `create-uiforge.mjs` — wire a project so slop can't land
+
+```bash
+node <plugin>/tools/create-uiforge.mjs <editorial|precise|brutalist|warm|maximalist> [dir]
+```
+
+Into an existing project it drops the direction's **token kit** → `src/index.css`,
+copies the **linter** → `scripts/`, adds a `lint:ui` npm script, installs a
+**pre-commit hook**, and writes a **CI workflow** (`.github/workflows/uiforge.yml`).
+A freshly-wired project (kit, no components yet) scores **A+**. Then install the
+kit's fonts and build on the tokens.
+
+## `uiforge-score.mjs` — grade any UI A–F (a review tool)
+
+```bash
+node <plugin>/tools/uiforge-score.mjs [dir]
+```
+
+Wraps the linter into a letter grade (any BLOCKER = **F**) + a 0–100 + the top
+tells — for reviewing a project or a PR, not just your own output. Drives
+`/uiforge:score`. Example: the A/B apps grade **F**; a kit-wired project grades
+**A+**.
