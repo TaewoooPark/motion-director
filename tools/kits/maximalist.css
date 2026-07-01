@@ -1,0 +1,41 @@
+/* UIForge kit — MAXIMALIST / EXPRESSIVE (bold, layered, kinetic — still one signature).
+ * Install:
+ *   npm i @fontsource/unbounded @fontsource-variable/hanken-grotesk
+ *   @import '@fontsource/unbounded';
+ *   @import '@fontsource-variable/hanken-grotesk';
+ * Dark, high-energy. Passes the linter. The gradient below is THE signature — the only one. */
+
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Unbounded", ui-sans-serif, sans-serif;   /* expressive display */
+  --font-text:    "Hanken Grotesk Variable", "Hanken Grotesk", ui-sans-serif, sans-serif;
+  --font-mono:    ui-monospace, monospace;
+
+  /* type — big ratio ≈ 1.5, dramatic */
+  --text-xs: .8125rem; --text-sm: .9375rem; --text-base: 1rem; --text-lg: 1.375rem;
+  --text-xl: 2rem; --text-2xl: 3rem; --text-3xl: 4.25rem; --text-display: 6rem;
+  --leading-tight: .95; --leading-snug: 1.1; --leading-normal: 1.5;
+
+  --radius-sm: 6px; --radius: 12px; --radius-lg: 24px;
+
+  /* rich dark + one bold magenta accent (a deliberate choice, never default purple) */
+  --color-bg: #0A0A0A; --color-fg: #F5F3F7;
+  --color-surface: #141216; --color-on-surface: #F5F3F7;
+  --color-muted: #9A94A2; --color-border: #262330;
+  --color-primary: #FF2E88; --color-on-primary: #0A0A0A;   /* magenta */
+  --color-ring: #FF2E88;
+}
+
+:root {
+  /* the ONE signature gradient (used once, not on every card) */
+  --signature-gradient: linear-gradient(120deg, #FF2E88 0%, #FF7A3D 100%);
+  --shadow-1: 0 2px 8px rgb(0 0 0 / .5);
+  --shadow-2: 0 8px 24px rgb(255 46 136 / .18);
+  --shadow-3: 0 16px 48px rgb(0 0 0 / .55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

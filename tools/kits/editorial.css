@@ -1,0 +1,44 @@
+/* UIForge kit — EDITORIAL (magazine, asymmetric, one big type moment).
+ * Real, non-default faces. Install:
+ *   npm i @fontsource-variable/fraunces @fontsource/newsreader
+ * then import at the top of your CSS entry:
+ *   @import '@fontsource-variable/fraunces';
+ *   @import '@fontsource/newsreader';
+ * (or a Google Fonts <link> for Fraunces + Newsreader). Then fill in real content
+ * and run the linter — this kit passes it. */
+
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces Variable", Fraunces, Georgia, serif;   /* characterful serif */
+  --font-text:    "Newsreader", Georgia, serif;
+  --font-mono:    ui-monospace, "SFMono-Regular", monospace;
+
+  /* type — editorial ratio ≈ 1.5 */
+  --text-xs: .75rem; --text-sm: .875rem; --text-base: 1.0625rem; --text-lg: 1.375rem;
+  --text-xl: 1.75rem; --text-2xl: 2.5rem; --text-3xl: 3.5rem; --text-display: 5rem;
+  --leading-tight: 1.05; --leading-snug: 1.2; --leading-normal: 1.55;
+
+  --radius-sm: 2px; --radius: 3px; --radius-lg: 6px;   /* almost square — editorial restraint */
+
+  /* color — paper & ink + one rust accent (never purple) */
+  --color-bg: #F7F4EF; --color-fg: #1A1714;
+  --color-surface: #FFFFFF; --color-on-surface: #1A1714;
+  --color-muted: #6B655C; --color-border: #E3DDD3;
+  --color-primary: #B4472E; --color-on-primary: #FFFFFF;   /* rust */
+  --color-ring: #B4472E;
+}
+
+:root { --shadow-1: none; --shadow-2: 0 1px 0 #E3DDD3; --shadow-3: 0 12px 30px rgb(26 23 20 / .08); }
+
+.dark {
+  --color-bg: #141210; --color-fg: #ECE7DF;
+  --color-surface: #1C1A17; --color-on-surface: #ECE7DF;
+  --color-muted: #A29B90; --color-border: #2C2925;
+  --color-primary: #E4744F; --color-on-primary: #141210;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

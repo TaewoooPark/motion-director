@@ -1,0 +1,47 @@
+/* UIForge kit — WARM / ORGANIC (soft, human, spring-led, warm neutrals).
+ * Install:
+ *   npm i @fontsource-variable/bricolage-grotesque @fontsource/jetbrains-mono
+ *   @import '@fontsource-variable/bricolage-grotesque';
+ *   @import '@fontsource/jetbrains-mono';
+ * Light, warm. Passes the linter. */
+
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-text:    "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* type — comfortable ratio ≈ 1.333 */
+  --text-xs: .78rem; --text-sm: .875rem; --text-base: 1rem; --text-lg: 1.25rem;
+  --text-xl: 1.6rem; --text-2xl: 2.15rem; --text-3xl: 2.85rem; --text-display: 3.8rem;
+  --leading-tight: 1.1; --leading-snug: 1.3; --leading-normal: 1.55;
+
+  --radius-sm: 8px; --radius: 14px; --radius-lg: 22px;   /* soft, consistent */
+
+  /* warm neutrals + terracotta accent */
+  --color-bg: #FBF7F0; --color-fg: #2A2420;
+  --color-surface: #FFFFFF; --color-on-surface: #2A2420;
+  --color-muted: #7C7266; --color-border: #ECE3D6;
+  --color-primary: #E07A5F; --color-on-primary: #FFFFFF;   /* terracotta */
+  --color-ring: #E07A5F;
+}
+
+/* soft shadows, one light source (from above) */
+:root {
+  --shadow-1: 0 1px 2px rgb(42 36 32 / .06);
+  --shadow-2: 0 4px 12px rgb(42 36 32 / .08);
+  --shadow-3: 0 12px 28px rgb(42 36 32 / .10);
+}
+
+.dark {
+  --color-bg: #211D19; --color-fg: #F1EAE0;
+  --color-surface: #2A251F; --color-on-surface: #F1EAE0;
+  --color-muted: #A69B8C; --color-border: #3A342C;
+  --color-primary: #EE8E74; --color-on-primary: #211D19;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

@@ -1,0 +1,48 @@
+/* UIForge kit — BRUTALIST / NEUBRUTALIST (raw, high-contrast, chunky, hard shadows).
+ * Install:
+ *   npm i @fontsource-variable/archivo @fontsource/space-mono
+ *   @import '@fontsource-variable/archivo';
+ *   @import '@fontsource/space-mono';
+ * Passes the linter. Note: hard OFFSET shadows (solid, 0 blur) — a deliberate signature. */
+
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Archivo Variable", Archivo, Impact, sans-serif;   /* heavy grotesk */
+  --font-text:    "Archivo Variable", Archivo, ui-sans-serif, sans-serif;
+  --font-mono:    "Space Mono", ui-monospace, monospace;
+
+  /* type — big ratio ≈ 1.5, extreme weights */
+  --text-xs: .8125rem; --text-sm: .9375rem; --text-base: 1rem; --text-lg: 1.375rem;
+  --text-xl: 2rem; --text-2xl: 3rem; --text-3xl: 4.5rem; --text-display: 6.5rem;
+  --leading-tight: .95; --leading-snug: 1.1; --leading-normal: 1.45;
+
+  --radius-sm: 0px; --radius: 0px; --radius-lg: 0px;   /* square */
+
+  /* stark high-contrast + one flat bright */
+  --color-bg: #FFFFFF; --color-fg: #0A0A0A;
+  --color-surface: #FFFFFF; --color-on-surface: #0A0A0A;
+  --color-muted: #4A4A4A; --color-border: #0A0A0A;   /* thick black hairlines */
+  --color-primary: #FFE500; --color-on-primary: #0A0A0A;   /* flat yellow */
+  --color-ring: #0A0A0A;
+}
+
+/* hard offset shadows (solid color, zero blur) — the brutalist signature */
+:root {
+  --shadow-1: 2px 2px 0 #0A0A0A;
+  --shadow-2: 4px 4px 0 #0A0A0A;
+  --shadow-3: 6px 6px 0 #0A0A0A;
+}
+
+.dark {
+  --color-bg: #0A0A0A; --color-fg: #FFFFFF;
+  --color-surface: #0A0A0A; --color-on-surface: #FFFFFF;
+  --color-muted: #B8B8B8; --color-border: #FFFFFF;
+  --color-primary: #FFE500; --color-on-primary: #0A0A0A;
+  --shadow-1: 2px 2px 0 #FFFFFF; --shadow-2: 4px 4px 0 #FFFFFF; --shadow-3: 6px 6px 0 #FFFFFF;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

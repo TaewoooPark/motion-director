@@ -21,11 +21,16 @@ component, then let nothing use a value that isn't in it.**
 
 ## 1. Emit `tokens.css` before any component
 
-Start from the shipped template — copy `${CLAUDE_PLUGIN_ROOT}/tools/tokens.template.css`
-into the project and fill every `___` from the chosen **direction** (see the
-`design-director` skill's `directions.md`). Emit CSS custom properties
-(shadcn-compatible — set `cssVariables: true`) so components consume `var(--…)`
-or the Tailwind utilities the tokens generate, never literals:
+**Don't start from a blank page — that's how the median wins.** Start from a
+**kit**: copy the chosen direction's ready theme from
+`${CLAUDE_PLUGIN_ROOT}/tools/kits/` (each ships a real, non-default typeface, a
+committed palette, radius/shadow, and a reduced-motion path — and already passes
+the linter). Install its fonts (the header line: `npm i @fontsource…`). Or run
+`/uiforge:reskin <image|url>` to derive tokens from a reference. The bare
+`${CLAUDE_PLUGIN_ROOT}/tools/tokens.template.css` is the fallback when no kit
+fits. Tune the roles to the brand, but keep components consuming `var(--…)` or
+the generated utilities (`bg-bg`, `text-fg`, `bg-primary`, `bg-surface`,
+`text-muted`, `border-border`) — never literals:
 
 ```css
 :root {
