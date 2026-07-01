@@ -21,9 +21,11 @@ component, then let nothing use a value that isn't in it.**
 
 ## 1. Emit `tokens.css` before any component
 
-Derive the values from the chosen **direction** (see the `design-director`
-skill's `directions.md`). Emit CSS custom properties (shadcn-compatible — set
-`cssVariables: true`) so components consume `var(--…)`, never literals:
+Start from the shipped template — copy `${CLAUDE_PLUGIN_ROOT}/tools/tokens.template.css`
+into the project and fill every `___` from the chosen **direction** (see the
+`design-director` skill's `directions.md`). Emit CSS custom properties
+(shadcn-compatible — set `cssVariables: true`) so components consume `var(--…)`
+or the Tailwind utilities the tokens generate, never literals:
 
 ```css
 :root {
@@ -72,10 +74,19 @@ default kit doesn't ship (a signature surface, an ink accent, a distinctive
 radius) and apply it consistently. `tweakcn` can generate a non-default shadcn
 theme to start from.
 
-## 3. Enforce — scan the build, correct drift
+## 3. Enforce — run the linter (the Gate)
 
-After components are in, treat the token file as law. Scan the diff and fix any
-value that doesn't derive from a token:
+Token discipline is not a vibe; it's a gate. Run the real linter — it exits
+non-zero on off-token values and slop tells:
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-lint.mjs <project-dir> --strict
+```
+
+Fix every BLOCKER (default font, AI purple, gradient headline, emoji-as-UI, hype
+copy, no reduced-motion) and resolve the warnings (raw hex, arbitrary values,
+off-grid spacing). **Re-run until it exits 0.** For reference, the checks mirror
+these patterns (promote each hit to a token or snap it to the scale):
 
 ```
 # raw hex / rgb at point of use (should be var(--…))

@@ -28,11 +28,21 @@ Walk the `critique.md` checklist across every axis — direction & intent,
 typography, color, space & surface, motion, states & copy, accessibility. Each is
 pass/fail; a "yes, but…" is a fail. List every fail with the fix.
 
-## 3. Grep pass
+## 3. Run the linter (the Gate — this is the real check)
 
-Run the `anti-slop.md` lint patterns over the code (purple gradient, maxed
-radius, colored glow, default font, `repeat: Infinity`, emoji-as-icon, off-grid
-spacing, hype copy). For each hit: justify it as a deliberate choice or fix it.
+Run the actual linter over the project — it exits non-zero on slop and token
+violations, so this is a hard gate, not a vibe:
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-lint.mjs <project-dir> --strict
+```
+
+Every **BLOCKER** must be fixed (default font like Inter/system-ui, AI
+purple/indigo, gradient headline, emoji-as-UI, hype copy, motion without a
+reduced-motion path). Resolve or explicitly justify each **warning** (raw hex,
+arbitrary values, off-grid spacing, maxed radius+shadow, gradient overuse,
+slate/zinc defaults, infinite loops, missing tokens). **Re-run until it exits 0.
+Do not report "done" while the linter fails.**
 
 ## 4. Forced subtraction (mandatory)
 

@@ -1,0 +1,57 @@
+/* UIForge token template — the design signature, emitted FIRST.
+ * Tailwind v4 (@theme) first; the :root roles also work as plain CSS vars anywhere.
+ * Fill every `___` from the chosen direction (design-director/references/directions.md).
+ * Rule: components consume var(--…) / the utilities below — never raw hex or off-scale px.
+ * Then run:  node <plugin>/tools/uiforge-lint.mjs  (must pass, blockers = 0). */
+
+@import "tailwindcss";
+
+@theme {
+  /* Type — ONE modular ratio (1.2 dense · 1.333 clear · 1.5–1.618 editorial).
+   * Never Inter/Roboto/system-ui as --font-display. Install a real face (Fontsource / next/font). */
+  --font-display: ___, ui-sans-serif;   /* a face with a point of view */
+  --font-text:    ___, ui-sans-serif;
+  --font-mono:    ___, ui-monospace;
+  --text-xs: 0.75rem;  --text-sm: 0.875rem; --text-base: 1rem;  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;   --text-2xl: 2rem;    --text-3xl: 2.75rem; --text-display: 3.75rem;
+  --leading-tight: 1.1; --leading-snug: 1.25; --leading-normal: 1.5;
+
+  /* Space — 8px grid (4px half-step). Stay on this scale. */
+  --spacing: 0.25rem; /* Tailwind v4 base: p-2 = 8px, p-4 = 16px, p-6 = 24px … */
+
+  /* Radius — ONE vocabulary (deliberate, not maxed). */
+  --radius-sm: ___; --radius: ___; --radius-lg: ___;
+
+  /* Color — semantic ROLES become utilities (bg-bg, text-fg, bg-primary…).
+   * ONE accent, used on < 10% of surface. Override the shadcn slate/zinc default. */
+  --color-bg: ___;         --color-fg: ___;
+  --color-surface: ___;    --color-on-surface: ___;
+  --color-muted: ___;      --color-border: ___;
+  --color-primary: ___;    --color-on-primary: ___;
+  --color-ring: ___;
+}
+
+/* Elevation — ONE light source (small vertical offset, tight blur), monotonic. */
+:root {
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 0.08);
+  --shadow-3: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+/* Dark mode swaps the same roles — do not re-pick colors ad hoc. */
+.dark {
+  --color-bg: ___;      --color-fg: ___;
+  --color-surface: ___; --color-on-surface: ___;
+  --color-muted: ___;   --color-border: ___;
+  --color-primary: ___; --color-on-primary: ___;
+}
+
+/* Reduced-motion is a design state — ship it from the start. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -46,11 +46,17 @@ Any fail → fix and re-run the whole thing. Go view by view.
 **Accessibility & ergonomics**
 - [ ] Targets ≥ 44×44pt; focus-visible on keyboard; icons have text labels; inputs ≥ 16px?
 
-## Grep pass
+## Run the linter (the Gate)
 
-Run the [`anti-slop.md`](anti-slop.md) lint patterns over the output. For every
-hit — purple gradient, maxed radius, colored glow, default font, `repeat:
-Infinity`, emoji-as-icon — either justify it as a deliberate choice or fix it.
+This is a hard gate, not a checklist. Run the shipped linter — it exits non-zero
+on the [`anti-slop.md`](anti-slop.md) tells and token violations:
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-lint.mjs <project-dir> --strict
+```
+
+Fix every BLOCKER; resolve or justify each warning; **re-run until it exits 0.**
+Do not declare the view done while the linter fails.
 
 ## The forced subtraction (mandatory — the step others skip)
 
