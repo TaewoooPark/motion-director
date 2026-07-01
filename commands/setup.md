@@ -1,14 +1,17 @@
 ---
-description: Prepare the current project for Motion-Primitives — ensure shadcn init, the @motion-primitives registry, and the motion/lucide-react/cn prerequisites.
+description: Prepare the current project for UIForge — ensure shadcn init, the component registries (shadcn + @motion-primitives), and the motion/lucide-react/cn prerequisites.
 argument-hint: "[optional: component to install after setup, e.g. text-effect]"
 allowed-tools: Read, Edit, Write, Bash(npx:*), Bash(npm:*), Bash(pnpm:*), Bash(yarn:*), Bash(bun:*), Bash(ls:*), Bash(test:*)
 ---
 
-You are wiring the **current target project** so Motion-Primitives components
-install cleanly through the shadcn registry. The shadcn MCP server (shipped by
-this plugin's `.mcp.json`) reads the registry list from **this project's**
-`components.json` — so the `@motion-primitives` entry must live here, in the
-target repo, not in the plugin. Do the following, reporting each result.
+You are wiring the **current target project** so UIForge can source components
+cleanly through the shadcn registry. The shadcn MCP server (shipped by this
+plugin's `.mcp.json`) reads the registry list from **this project's**
+`components.json` — so registry entries must live here, in the target repo, not
+in the plugin. The default shadcn/ui registry needs no entry; the
+`@motion-primitives` registry does. Do the following, reporting each result.
+(For the design foundation itself — tokens, type, color — that's the
+`uiforge:design-tokens` skill; this command only prepares the plumbing.)
 
 ## 1. Confirm this is a shadcn project
 
