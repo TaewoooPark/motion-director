@@ -70,11 +70,13 @@ first is how you end up directing.
    inspiration; that is how scope creeps.
 
 6. **Install from the registry. Never hand-write component source.** The
-   registry is the source of truth. Add each component with
-   `npx motion-primitives@latest add <slug>` or
-   `npx shadcn@latest add "https://motion-primitives.com/c/<slug>.json"`, then
-   compose. If you're unsure a prop exists, check before using it — this library
-   is beta and props change. (Integrity rule below.)
+   registry is the source of truth. **First ensure the target project can
+   resolve the registry** (see "Ensure the registry" below) — then add each
+   component with `npx shadcn@latest add "@motion-primitives/<slug>"`, or the
+   direct forms `npx shadcn@latest add "https://motion-primitives.com/c/<slug>.json"`
+   / `npx motion-primitives@latest add <slug>`, and compose. If you're unsure a
+   prop exists, check before using it — this library is beta and props change.
+   (Integrity rule below.)
 
 7. **Compose the orchestration.** Sequence, stagger, and wire the pieces. →
    [`references/recipes.md`](references/recipes.md) has verified orchestrations
@@ -230,6 +232,28 @@ effects can I fit."
   source (`components/core/<slug>.tsx`), or the docs page. If unsure, verify
   before shipping. The library is beta; APIs move.
 - Only the **free** core components are in scope. Ignore the paid Pro tier.
+
+### Ensure the registry (before the first install)
+
+The shadcn CLI/MCP resolves components from the **target project's**
+`components.json`, so `@motion-primitives` must be registered *there*. Before
+installing the first component, confirm `components.json` has this exact entry
+(the URL is confirmed from Motion-Primitives' own install UI — don't alter it):
+
+```json
+{
+  "registries": {
+    "@motion-primitives": "https://motion-primitives.com/c/{name}.json"
+  }
+}
+```
+
+If it's missing, add it (leaving any other registries intact). If this project
+ships the **motion-director plugin**, just run `/motion-director:motion-setup`,
+which ensures this entry plus the `motion` / `lucide-react` / `cn` prerequisites.
+Keep `{name}` literal — shadcn substitutes the component slug at install time.
+If registry resolution ever fails, fall back to
+`npx motion-primitives@latest add <slug>`, which needs no registry config.
 
 ---
 
