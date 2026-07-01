@@ -94,6 +94,5 @@ directory.
 
 Summarize: whether `components.json` existed, what you changed in `registries`,
 prerequisite status, and the exact next command to install a component. Remind
-the user that the actual motion work is directed by the
-`motion-director:motion-primitives-director` skill — its budget, single
-signature, and reduced-motion rules still apply.
+the user that the actual motion work is directed by the `uiforge:motion`
+skill — its budget, single signature, and reduced-motion rules still apply.

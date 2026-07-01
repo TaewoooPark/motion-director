@@ -44,13 +44,20 @@ function walk(dir, out = []) {
   return out
 }
 
-// collect target files: src/, app/, and top-level index.html
+// collect target files. Cover the common React/Next layouts, not just src/app —
+// a project with UI under components/ or pages/ must not silently scan 0 files
+// (0 files → no tells → a false "clean" grade). Non-existent roots are no-ops.
+const SCAN_ROOTS = ['src', 'app', 'components', 'pages', 'ui', 'styles']
 const files = []
-for (const sub of ['src', 'app']) walk(path.join(ROOT, sub), files)
+for (const sub of SCAN_ROOTS) walk(path.join(ROOT, sub), files)
 for (const f of ['index.html']) {
   const p = path.join(ROOT, f)
   if (fs.existsSync(p)) files.push(p)
 }
+// dedupe (nested roots can overlap, e.g. src/components + components)
+const seen = new Set()
+const uniqueFiles = files.filter(f => (seen.has(f) ? false : seen.add(f)))
+files.length = 0; files.push(...uniqueFiles)
 
 const read = f => { try { return fs.readFileSync(f, 'utf8') } catch { return '' } }
 const texts = Object.fromEntries(files.map(f => [path.relative(ROOT, f), read(f)]))
@@ -114,8 +121,8 @@ const RULES = [
   { id: 'maxed-radius+shadow', sev: 'WARN',
     why: 'The default AI card: rounded-2xl/3xl + shadow-lg/xl. Prefer borders + contrast; one radius vocabulary.',
     run: () => scan(/rounded-(2xl|3xl|full)[^"'`]*shadow-(lg|xl|2xl)|shadow-(lg|xl|2xl)[^"'`]*rounded-(2xl|3xl|full)/) },
-  { id: 'gradient-overuse', sev: 'WARN',
-    why: 'Many gradients. A gradient may exist only as a deliberate signature, not everywhere.',
+  { id: 'gradient-overuse', sev: 'WARN', threshold: 3,
+    why: 'Gradient overuse (3+). A gradient may exist as ONE deliberate signature — not on every card. A single signature gradient (e.g. a kit token) is allowed by design.',
     run: () => scan(/bg-gradient|from-\w+-\d|linear-gradient|radial-gradient|conic-gradient/) },
   { id: 'shadcn-default-neutral', sev: 'WARN',
     why: 'Unmodified slate/zinc — override the stock neutral so it is not the default shadcn look.',
@@ -130,7 +137,7 @@ const usesMotion = /from\s+['"]motion|framer-motion|<motion\.|useAnimate|animate
 const hasReducedMotion = /useReducedMotion|prefers-reduced-motion|reducedMotion/.test(ALL)
 const hasTokens = /:root\s*\{[^}]*--[\w-]+\s*:/.test(ALL) || Object.keys(texts).some(k => /token|theme/i.test(k))
 
-const results = RULES.map(r => ({ ...r, ...r.run() })).filter(r => r.count > 0)
+const results = RULES.map(r => ({ ...r, ...r.run() })).filter(r => r.count >= (r.threshold || 1))
 if (usesMotion && !hasReducedMotion)
   results.push({ id: 'no-reduced-motion', sev: 'BLOCKER', count: 1, hits: [],
     why: 'Motion is used but there is no prefers-reduced-motion / useReducedMotion path. Reduced-motion is a design state, not optional.' })
@@ -140,27 +147,36 @@ if (!hasTokens)
 
 const score = results.reduce((s, r) => s + W[r.sev] * (r.sev === 'BLOCKER' ? 1 : r.count), 0)
 const blockers = results.filter(r => r.sev === 'BLOCKER')
+const noFiles = files.length === 0            // scanned nothing → not a clean bill of health
 const pass = blockers.length === 0 && score <= MAX_SCORE
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ root: ROOT, files: files.length, score, pass,
+  console.log(JSON.stringify({ root: ROOT, files: files.length, empty: noFiles, score, pass,
     violations: results.map(({ id, sev, count, why, hits }) => ({ id, sev, count, why, hits })) }, null, 2))
-} else {
-  const R = '\x1b[31m', Y = '\x1b[33m', G = '\x1b[32m', DIM = '\x1b[2m', X = '\x1b[0m'
-  if (!QUIET) {
-    console.log(`\n  UIForge lint — ${path.relative(process.cwd(), ROOT) || '.'}  (${files.length} files)\n`)
-    if (!results.length) console.log(`  ${G}✓ no slop tells found${X}`)
-    for (const r of results.sort((a, b) => (a.sev < b.sev ? -1 : 1))) {
-      const c = r.sev === 'BLOCKER' ? R : Y
-      console.log(`  ${c}${r.sev === 'BLOCKER' ? '✗' : '⚠'} ${r.id}${X} ${DIM}×${r.count}${X}`)
-      console.log(`    ${DIM}${r.why}${X}`)
-      if (r.hits.length) console.log(`    ${DIM}${r.hits.join('  ')}${r.count > r.hits.length ? '  …' : ''}${X}`)
-    }
-    console.log()
-  }
-  const verdict = pass ? `${G}✓ PASS${X}` : `${R}✗ FAIL${X}`
-  const gate = MAX_SCORE === Infinity ? 'blockers-only' : `max-score=${MAX_SCORE}`
-  console.log(`  ${verdict}  score=${score} blockers=${blockers.length} (gate: ${gate})\n`)
+  process.exit(pass ? 0 : 1)
 }
+
+const R = '\x1b[31m', Y = '\x1b[33m', G = '\x1b[32m', DIM = '\x1b[2m', X = '\x1b[0m'
+if (noFiles) {
+  // The audit's false-A+ trap: 0 files scanned reads as "clean" when it means "misconfigured".
+  console.log(`\n  UIForge lint — ${path.relative(process.cwd(), ROOT) || '.'}\n`)
+  console.log(`  ${Y}⚠ nothing scanned${X} — no UI files found under ${DIM}${SCAN_ROOTS.map(s => s + '/').join(' ')} index.html${X}`)
+  console.log(`    ${DIM}Point it at your UI root:  node uiforge-lint.mjs <dir>.  Zero files is not a passing grade.${X}\n`)
+  process.exit(0)                             // advisory, but never a green PASS
+}
+if (!QUIET) {
+  console.log(`\n  UIForge lint — ${path.relative(process.cwd(), ROOT) || '.'}  (${files.length} files)\n`)
+  if (!results.length) console.log(`  ${G}✓ no slop tells found${X}`)
+  for (const r of results.sort((a, b) => (a.sev < b.sev ? -1 : 1))) {
+    const c = r.sev === 'BLOCKER' ? R : Y
+    console.log(`  ${c}${r.sev === 'BLOCKER' ? '✗' : '⚠'} ${r.id}${X} ${DIM}×${r.count}${X}`)
+    console.log(`    ${DIM}${r.why}${X}`)
+    if (r.hits.length) console.log(`    ${DIM}${r.hits.join('  ')}${r.count > r.hits.length ? '  …' : ''}${X}`)
+  }
+  console.log()
+}
+const verdict = pass ? `${G}✓ PASS${X}` : `${R}✗ FAIL${X}`
+const gate = MAX_SCORE === Infinity ? 'blockers-only' : `max-score=${MAX_SCORE}`
+console.log(`  ${verdict}  score=${score} blockers=${blockers.length} (gate: ${gate})\n`)
 
 process.exit(pass ? 0 : 1)

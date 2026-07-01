@@ -227,7 +227,7 @@ UIForge/
 
 ### The Gate — `uiforge-lint.mjs`
 
-Zero-dependency Node. Scans `src`/`app`/`index.html` and **exits non-zero** on any
+Zero-dependency Node. Scans `src`/`app`/`components`/`pages`/`ui`/`styles`/`index.html` (an empty scan reports *nothing scanned*, never a fake pass) and **exits non-zero** on any
 **BLOCKER**: a default/system font (even hidden in a `const`), AI purple/indigo, a
 gradient headline, emoji-as-UI, hype copy, or motion without a reduced-motion
 path. It **warns** (scored, advisory) on raw hex at point of use, Tailwind

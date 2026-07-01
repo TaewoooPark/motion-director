@@ -251,9 +251,9 @@ installing the first component, confirm `components.json` has this exact entry
 }
 ```
 
-If it's missing, add it (leaving any other registries intact). If this project
-ships the **motion-director plugin**, just run `/motion-director:motion-setup`,
-which ensures this entry plus the `motion` / `lucide-react` / `cn` prerequisites.
+If it's missing, add it (leaving any other registries intact). If you have the
+**UIForge plugin** installed, just run `/uiforge:setup`, which ensures this
+entry plus the `motion` / `lucide-react` / `cn` prerequisites.
 Keep `{name}` literal — shadcn substitutes the component slug at install time.
 If registry resolution ever fails, fall back to
 `npx motion-primitives@latest add <slug>`, which needs no registry config.
