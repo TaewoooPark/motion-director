@@ -50,8 +50,9 @@ end up decorating.
    clean" — that's the median. Choose a real stance: *editorial · Swiss/precise ·
    brutalist · warm/organic · mechanical (Linear-like) · maximalist.* "Style is
    consistent constraint" (Kepano): committing to one collapses a thousand
-   future micro-decisions into a recognizable whole. → the **`design-tokens`**
-   and **`motion`** skills carry the concrete signature values for each.
+   future micro-decisions into a recognizable whole. → pick one from
+   [`references/directions.md`](references/directions.md) (each has a concrete
+   type/color/space/motion signature).
 
 3. **Emit the design signature FIRST — as tokens, before a single component.**
    Write `tokens.css` (color roles, type scale, spacing, radius, shadow) and
@@ -65,7 +66,8 @@ end up decorating.
    bundled shadcn MCP, then compose. Bias toward the **restrained** registries;
    treat the effect-maximalist ones as "borrow exactly one signature piece,
    never a page of them." Verify props (these are beta). Provenance over
-   invention.
+   invention. → the taste-graded allowlist is in
+   [`references/registry-map.md`](references/registry-map.md).
 
 5. **Compose to a budget** (below). One signature moment; everything else quiet.
    Motion is directed by the **`motion`** skill; copy by the **`content`** skill.
@@ -74,7 +76,8 @@ end up decorating.
    quality, originality, craft, does-every-element-earn-its-place,
    reduced-motion integrity — as if someone else built it (self-graders skew
    positive). Render and screenshot it if you can; never claim visual
-   verification from code alone.
+   verification from code alone. → the rubric is in
+   [`references/critique.md`](references/critique.md).
 
 7. **Forced subtraction — remove one thing.** Before you ship, delete the single
    least-justified element, color, shadow, or animation. This is not optional.
@@ -161,6 +164,9 @@ frontend-design guidance.
 | Invoke / read | When |
 |---|---|
 | [`references/anti-slop.md`](references/anti-slop.md) | Always keep near. The named tells, grep lint patterns, banned copy, calibration targets. |
+| [`references/directions.md`](references/directions.md) | Step 2. Commit to one aesthetic point of view — each with a concrete type/color/space/motion signature. |
+| [`references/registry-map.md`](references/registry-map.md) | Step 4. The taste-graded registry allowlist (restrained vs maximalist) + provenance. |
+| [`references/critique.md`](references/critique.md) | Step 6–7. The blind rubric, the grep pass, and the forced-subtraction gate. |
 | skill **`uiforge:design-tokens`** | Step 3. Emit and enforce `tokens.css` + `motion.ts` (color roles, type scale, 8px space, radius/shadow). |
 | skill **`uiforge:motion`** | Step 5. The motion layer — one signature, the easing/spring canon, Motion-Primitives, reduced-motion. |
 | skill **`uiforge:content`** | Step 5. Microcopy — outcome-labels, error/empty states, the hype blocklist, the specificity test. |
