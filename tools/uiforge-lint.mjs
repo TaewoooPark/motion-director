@@ -63,7 +63,10 @@ const W = { BLOCKER: 10, WARN: 2 }
 
 // A rule: {id, sev, why, test(): {count, hits:[file:line]}}
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/u
-const DEFAULT_FONTS = /(font-family|fontFamily)\s*[:=][^;\n}]*?(Inter|system-ui|-apple-system|BlinkMac|Segoe UI|Roboto|Helvetica|Arial|Open Sans|Lato)\b/i
+// default fonts, two ways: (a) inline font-family: …, and (b) a font STACK assigned
+// to a const/var (e.g. `const SANS = '"Helvetica Neue", -apple-system, …, sans-serif'`).
+const DEFAULT_FONT_INLINE = /(font-family|fontFamily)\s*[:=][^;\n}]*?(Inter|system-ui|-apple-system|BlinkMac|Segoe UI|Roboto|Helvetica|Arial|Open Sans|Lato)\b/i
+const FONT_STACK_CONST = /\b(-apple-system|BlinkMacSystemFont|system-ui|Segoe UI|Inter|Roboto)\b[^\n]{0,140}(sans-serif|serif|monospace)/i
 const HYPE = /\b(unlock|supercharge|elevate your|revolutioni[sz]e|streamline|seamless(ly)?|world[- ]?class|enterprise-grade|game[- ]?chang\w*|cutting[- ]edge|next[- ]generation|trusted by thousands|in today'?s fast-?paced world|effortless\w*)\b/i
 
 function scan(re, opts = {}) {
@@ -82,8 +85,11 @@ function scan(re, opts = {}) {
 
 const RULES = [
   { id: 'default-font', sev: 'BLOCKER',
-    why: 'Primary font is a default (Inter/system-ui/Roboto…). Default fonts signal default thinking — pick a distinctive face.',
-    run: () => scan(DEFAULT_FONTS) },
+    why: 'Primary font is a default/system stack (Inter/system-ui/-apple-system/Roboto…), even when hidden in a const. Default fonts signal default thinking — pick a distinctive face.',
+    run: () => {
+      const a = scan(DEFAULT_FONT_INLINE), b = scan(FONT_STACK_CONST)
+      return { count: a.count + b.count, hits: [...a.hits, ...b.hits].slice(0, 5) }
+    } },
   { id: 'ai-purple', sev: 'BLOCKER',
     why: 'Indigo/violet/purple accent — the single most-cited AI tell. Commit to your own accent.',
     run: () => scan(/\b(bg|text|from|via|to|border|ring|fill|stroke)-(indigo|violet|purple|fuchsia)-\d{2,3}\b/) },
