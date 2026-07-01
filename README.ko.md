@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <img src="./docs/proof-v3-f-to-a.png" alt="UIForge 비교: 플러그인 없음(lint F, blocker 3) vs UIForge /forge(lint A+, blocker 0)" width="100%">
+  <img src="./docs/proof-render-audit.png" alt="UIForge 딥 티어: LLM 기본값은 F(17/100) — WCAG 대비 5건 실패, accent 57% 표면, 동일 카드 3개; 확정된 방향은 A(94/100)" width="100%">
 </p>
-<p align="center"><sub><em>같은 브리프·모델·스타터 — 유일한 변수는 플러그인. 왼쪽: 평범한 Claude, <b>lint 등급 F</b>. 오른쪽: UIForge를 <code>/forge</code>로, <b>lint 등급 A+</b>. 내장 린터로 채점. <a href="#증거-vibes가-아니라">자세히 ↓</a></em></sub></p>
+<p align="center"><sub><em><b>딥 티어</b>가 소스가 아니라 <b>렌더된 픽셀</b>을 채점한다 — 실제 WCAG 대비·accent 표면적·간격 리듬·레이아웃 tell. 왼쪽: LLM이 기본으로 내는 페이지, <b>F(17/100)</b> — 대비 5건 실패(gradient headline이 <code>transparent</code>라 문자 그대로 1:1), accent가 표면의 57%, 동일 카드 3개. 오른쪽: 확정된 방향, <b>A(94/100)</b>. 내장 <code>uiforge-render-audit</code>로 채점 — 재현: <code>node tools/uiforge-render-audit.mjs docs/examples/slop.html</code>. <a href="#증거-vibes가-아니라">자세히 ↓</a></em></sub></p>
 
 ---
 
@@ -71,6 +71,7 @@ UIForge의 일은 **기본값을 결정으로 바꾸고, 그 결정을 강제하
 | 컴포넌트 | **취향 등급** 레지스트리 allowlist에서 설치(provenance), 창작 금지 | 손으로 짠 변형, 혹은 효과-맥시멀리스트 덤프 |
 | "완료"의 기준 | 린터 = 0 **그리고** 픽셀만 받은 적대자가 AI임을 증명 못 함 | "내가 보기엔 괜찮은데"(자가채점, 낙관 편향) |
 | *남의* UI 리뷰 | `uiforge score <dir│PR>` → 텔과 함께 A–F 등급 | — |
+| *렌더 결과* 채점 | `uiforge-render-audit <url>`가 실제 WCAG 대비·accent 표면적·간격 리듬·레이아웃 tell을 픽셀에서 측정 | 소스에서 자가채점(있다면); 대비/커버리지/리듬은 통째로 놓침 |
 | 실행 위치 | 로컬, 당신의 Claude Code 세션; 무의존성 Node | 호스팅 제품 / 웹앱 |
 | 당신의 디자인 결정 | 당신이 소유한 평문 — 키트·토큰·규칙, 편집·`git diff` 가능 | 원격 모델의 불투명한 동작 |
 
@@ -91,16 +92,28 @@ Grotesk, system-ui 아님) → `tokens.css` + `motion.ts` 방출 → `uiforge-li
 에디토리얼로. 정직한 초기 교훈: **프로즈-only 가이드(v2)는 blocker 3개 — 실질 변화 없었다.
 오직 기계장치(v3)가 F → A+로 뒤집었다.** 아무 프로젝트에서 재현: `node tools/uiforge-lint.mjs <dir>`.
 
+**두 층위의 증명.** 위 표는 *소스* 게이트(grep)가 실제 런을 뒤집은 것이다. 맨 위 히어로
+이미지는 *딥* 티어다: `uiforge-render-audit`가 페이지를 렌더해 grep이 못 보는 것을 채점한다 —
+텍스트 노드별 실제 WCAG 대비, accent가 표면의 몇 %인지, 기하학에서 측정한 간격 리듬·타입 정합,
+레이아웃 tell(동일 카드·중앙 히어로). LLM 기본값은 **F(17/100)** 로 대비 5건 실패(gradient
+headline이 `transparent`라 **1:1**), 확정된 방향은 **A(94/100)**. 더 나은 프롬프트로 2.9:1
+대비를 피할 수는 없다 — 재현: `node tools/uiforge-render-audit.mjs docs/examples/slop.html`.
+
 ## 핵심 원리: slop은 빌드 에러다
 
 여기 모든 것은 한 수에서 파생된다 — **취향을 게이트로 만든다.**
 
 - 마크다운 스킬은 *조언*이다: 모델의 사전확률 옆에 놓여, 토큰/시간 압박이 오면 진다.
   (계측: v2의 프로즈는 blocker 3개를 남겼다.)
-- **린터**는 조언이 아니다. `tools/uiforge-lint.mjs`는 `src`/`app`을 스캔해 slop을 지목하고
-  **비-0으로 종료**한다. pre-commit 훅 / CI로 심으면 slop은 커밋조차 못 한다.
-- `/uiforge:forge`는 모델이 그 게이트에 대해 **반복**하게 만든다 — build → lint → 정확한
-  위반 수정 → 0 될 때까지 반복 — 그다음 렌더된 픽셀에 어드버서리얼 디텍터를 돌린다.
+- **린터**는 조언이 아니다. `tools/uiforge-lint.mjs`는 소스를 스캔해 slop을 지목하고
+  **비-0으로 종료**한다. pre-commit 훅 / CI로 심으면 slop은 커밋조차 못 한다. (빠른 무의존성 티어.)
+- **렌더 감사**는 grep이 못 가는 곳으로 간다. `tools/uiforge-render-audit.mjs`는 페이지를
+  렌더해 전문가가 *결과물*에서 비평하는 크래프트를 측정한다 — 텍스트 노드별 실제 WCAG 대비,
+  accent가 표면의 몇 %인지, 기하학 기반 간격 리듬·타입 정합, AI 레이아웃 tell. 게임 불가:
+  키워드로 2.9:1 대비를 지워낼 수 없다. (딥 티어; 브라우저 필요.)
+- `/uiforge:forge`는 모델이 **두 게이트에 대해 반복**하게 만든다 — build → lint →
+  render-audit → 정확한 위반 수정 → 둘 다 통과할 때까지 반복 — 그다음 렌더된 픽셀에
+  어드버서리얼 디텍터를 돌린다.
 
 따라서 기준은 "모델이 취향을 내려 애썼다"가 아니다. **"스크린샷만 받은 적대자가 기계가
 만들었음을 증명하지 못한다"** 이다. 이게 제품의 전부다.
@@ -116,7 +129,7 @@ Grotesk, system-ui 아님) → `tokens.css` + `motion.ts` 방출 → `uiforge-li
 | **3. 서명** | `tokens.css` + `motion.ts`를 키트에서 **먼저** 방출 | `design-tokens` + `tools/kits/` | 진짜 폰트·액센트 하나·8px 스케일·모션 서명 |
 | **4. 조달** | 검증 컴포넌트 설치(provenance), 창작 금지 | `registry-map.md` + shadcn MCP | 진짜·접근성 컴포넌트 |
 | **5. 조합** | 시그니처 하나, 나머지는 정적, 모든 상태 설계 | `motion`, `content` | 완성된 뷰 |
-| **6. 강제(루프)** | `uiforge-lint --strict` → 수정 → **0** 될 때까지; 그다음 어드버서리얼 디텍터 | `/forge`, `/critique`, `slop-detector.md` | 게이트 통과한 빌드 |
+| **6. 강제(루프)** | `uiforge-lint --strict`(소스) → `uiforge-render-audit`(렌더) → 수정 → **둘 다 통과**할 때까지; 그다음 어드버서리얼 디텍터 | `/forge`, `/critique`, `slop-detector.md` | 두 게이트 티어를 통과한 빌드 |
 | **7. 뺄셈** | 가장 정당성 약한 하나 제거 | `critique.md` | 덜어낸 액세서리 |
 
 ## 다섯 가지 방향
@@ -176,6 +189,7 @@ npm run lint:ui                                       # 게이트
 ```
 UIForge/
 ├── README.md · README.ko.md · LICENSE
+├── docs/                                             # proof 이미지 + 재현용 전후 fixture
 ├── .claude-plugin/{plugin.json, marketplace.json}   # 플러그인 + 자체 설치 마켓플레이스
 ├── .mcp.json                                         # 공식 shadcn MCP (컴포넌트 provenance)
 ├── commands/
@@ -192,11 +206,12 @@ UIForge/
 │   ├── motion/           # 모션 레이어 (Motion-Primitives, 시그니처 하나, reduced-motion)
 │   │   └── references/{directions, components, recipes, critique, easing-canon}.md
 │   └── content/          # 마이크로카피: 결과 라벨·실제 상태·hype blocklist
-└── tools/                # 실행되는 무의존성 Node
-    ├── uiforge-lint.mjs      # 게이트 — slop에서 빌드 실패
-    ├── uiforge-score.mjs     # A–F 등급 래퍼 (리뷰 도구)
-    ├── create-uiforge.mjs    # 배선된 프로젝트 스캐폴드
-    ├── tokens.template.css   # 토큰 어휘
+└── tools/                # 실행되는 Node — grep 티어 무의존성, render 티어는 Playwright
+    ├── uiforge-lint.mjs          # 게이트(소스) — slop에서 빌드 실패
+    ├── uiforge-render-audit.mjs  # 딥 티어(렌더) — WCAG 대비 · accent · 리듬 · 레이아웃
+    ├── uiforge-score.mjs         # A–F 등급 래퍼 (리뷰 도구)
+    ├── create-uiforge.mjs        # 배선된 프로젝트 스캐폴드
+    ├── tokens.template.css       # 토큰 어휘
     └── kits/{editorial,precise,brutalist,warm,maximalist}.css
 ```
 
@@ -206,9 +221,9 @@ UIForge/
 |---|---|
 | `/uiforge:forge <브리프>` | 전 파이프라인: 논지 → 방향 → 토큰 → 조달 → 조합 → **린터=0까지 루프** → 디텍터 → 뺄셈 |
 | `/uiforge:setup [컴포넌트]` | 레지스트리(shadcn + @motion-primitives) + `motion`/`lucide-react`/`cn` 준비 |
-| `/uiforge:critique` | 현재 뷰를 **블라인드** 판정: render+screenshot, 린터, 어드버서리얼 디텍터, 강제 뺄셈 |
+| `/uiforge:critique` | 현재 뷰를 **블라인드** 판정: render+screenshot, **두 게이트 티어**(소스 린터 + 렌더 감사), 어드버서리얼 디텍터, 강제 뺄셈 |
 | `/uiforge:reskin <이미지│url>` | 레퍼런스에서 서명(팔레트·타입·리듬)을 토큰으로 추출 — *바이브를 훔치되 픽셀은 아님* |
-| `/uiforge:score <dir│PR│url>` | 아무 UI를 **A–F**로, 텔과 함께 — 독립 리뷰어 / PR 봇 |
+| `/uiforge:score <dir│PR│url>` | 아무 UI를 **A–F**로, 텔과 함께 — dir/PR은 소스 린터, 라이브 URL은 **렌더 감사**. 독립 리뷰어 / PR 봇 |
 
 ## 내부 구조
 
@@ -220,6 +235,25 @@ reduced-motion 경로 없는 모션. **경고**(점수화, 권고)는 point-of-u
 arbitrary 값, off-8px-grid 여백, maxed radius+shadow, 그라디언트 남용, slate/zinc 기본,
 무한 루프, 토큰 레이어 부재. `--strict`는 경고 누적도 실패, `--json`은 기계용. **Dogfood**됨:
 자기 A/B 런을 채점하고, 스스로 찾은 갭(폰트를 `const`에 숨김)을 같은 날 수정했다.
+
+### 딥 티어 — `uiforge-render-audit.mjs`
+
+린터는 소스를 grep하고, 이건 페이지를 **렌더**해(Playwright) *결과물*을 채점한다 — 시니어
+디자이너가 비평하는 차원들을, 전부 측정으로, 게임 불가하게:
+
+- **WCAG 대비**, 텍스트 노드별로 실제 합성 배경 대비 계산(`transparent` gradient headline은
+  **1:1**로 귀결 — grep이 못 보는 진짜 실패).
+- **accent 표면적**, 비중첩 샘플 그리드에서 — *"표면의 <10%"* 규칙을 드디어 강제. tinted된
+  거의 흰/검(따뜻한 페이퍼, 잉크)은 neutral로 취급.
+- **간격 리듬** — 형제 요소 간 distinct 수직 간격을 실제 기하학에서, 4px 그리드 이탈 %까지
+  (하드코딩 denylist 아님).
+- **타입 스케일 정합** — distinct 사이즈 수와 단일 모듈러 비율을 따르는지.
+- **AI 레이아웃 패턴** — 한 행에 동일 너비 카드 *N*개; 정중앙 메가 히어로.
+
+score 도구와 같은 일관된 0–100 → A–F 척도. `analyze()` 코어는 순수·브라우저 무관
+(`--self-test`가 회귀 테스트로 함께 배포). 이게 디자인 현업에 닿는 티어다 — JSX 린트가 아니라
+렌더된 산출물에 대한 실제 a11y + 크래프트 리포트. `/uiforge:critique`와 `/uiforge:score <url>`
+에서 구동, 또는 단독: `node tools/uiforge-render-audit.mjs <url│file.html>`.
 
 ### Ground truth — 키트·폰트·reskin
 
@@ -263,6 +297,13 @@ Motion-Primitives 엔드포인트는 봇 체크포인트 뒤라 CI 페치는 `42
 
 **린터가 너무 엄격한가요?** 기본은 **BLOCKER만** 실패(경고는 권고). `--strict`는 무관용,
 `--max-score N`으로 조절. 의도적으로 의견 있게 만들었습니다 — 그게 게이트의 요점입니다.
+
+**검사는 얼마나 깊이 가나요?** 두 티어입니다. 린터는 *소스*를 grep해 조잡한 tell(폰트·색·
+그라디언트·이모지·hype)을 잡습니다 — 빠르고 무의존성, pre-commit에 심으세요.
+`uiforge-render-audit`는 페이지를 렌더해 *결과물*을 측정합니다 — 실제 WCAG 대비·accent
+표면적·간격 리듬·타입 정합·레이아웃 패턴, grep이 구조적으로 못 보는 것들. 소스 티어는
+필수이고, "디자인됨 vs 제네릭"이 실제로 갈리는 곳은 렌더 티어입니다. 강한 신호이지 axe-core급
+풀 a11y 감사를 *대체*하진 않으며 — 보완합니다.
 
 **제 디자인 시스템을 대체하나요?** 아니요. 탄탄한 기본기와 진짜 콘텐츠 위에 *결정*을 얹을 뿐,
 할 말 없는 페이지를 구제하진 않습니다.

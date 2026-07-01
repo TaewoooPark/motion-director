@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><title>After — a committed direction</title><style>
+  /* What UIForge's direction + tokens produce: a real display serif, warm paper,
+     one rust accent under 10% of the surface, strong contrast, an asymmetric
+     left-aligned hero, a coherent scale, on-grid spacing, checkable copy. */
+  :root{
+    --bg:#f4f1ea; --fg:#1a1714; --muted:#4a4640; --line:#d8d2c6;
+    --accent:#b4472e; --paper:#fbf9f4;
+    --s1:8px; --s2:16px; --s3:24px; --s4:40px; --s5:64px;
+    --display:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --text:"Charter","Georgia",serif;
+  }
+  *{margin:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--fg);font-family:var(--text);line-height:1.6;}
+  .wrap{max-width:1080px;margin:0 auto;padding:var(--s5) var(--s4);}
+  .kicker{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:var(--s2);font-weight:700;}
+  h1{font-family:var(--display);font-size:60px;line-height:1.05;font-weight:700;max-width:16ch;margin-bottom:var(--s3);letter-spacing:-.01em;}
+  .lede{font-size:22px;color:var(--muted);max-width:60ch;margin-bottom:var(--s4);}
+  .row{display:flex;gap:var(--s3);align-items:baseline;}
+  .btn{background:var(--fg);color:var(--paper);text-decoration:none;padding:var(--s2) var(--s3);border-radius:2px;font-size:16px;font-weight:600;}
+  .link{color:var(--fg);font-size:16px;border-bottom:2px solid var(--accent);padding-bottom:2px;}
+  .meta{border-top:1px solid var(--line);margin-top:var(--s5);padding-top:var(--s3);display:flex;gap:var(--s4);}
+  .meta div{font-size:15px;color:var(--muted);}
+  .meta b{display:block;font-family:var(--display);font-size:28px;color:var(--fg);font-weight:700;line-height:1.2;}
+</style></head><body>
+  <main class="wrap">
+    <p class="kicker">Field notes / 07</p>
+    <h1>A 15-minute CI run is a tax every engineer pays, daily.</h1>
+    <p class="lede">We rebuilt the pipeline around cache locality and merge-queue batching. The median dropped to 94 seconds. Here is exactly what moved the number.</p>
+    <div class="row">
+      <a class="btn" href="#">Read the teardown</a>
+      <a class="link" href="#">See the benchmark</a>
+    </div>
+    <div class="meta">
+      <div><b>94s</b>median CI, down from 15m</div>
+      <div><b>9.4×</b>fewer queued builds</div>
+      <div><b>0</b>flaky retries this quarter</div>
+    </div>
+  </main>
+</body></html>

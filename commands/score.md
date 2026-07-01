@@ -13,9 +13,11 @@ a grade. This is UIForge as a **reviewer**, not a generator.
 node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-score.mjs <dir>
 ```
 
-It prints a letter grade (A+…F — any BLOCKER = F), a 0–100, and the top tells.
-Then summarize: the grade, the blockers (each with the one-line why + a fix), and
-the two or three highest-leverage changes to raise it.
+It prints a letter grade on one coherent 0–100 scale (a BLOCKER is heavy — a
+single one caps the grade at **C**; 0 tells → **A+**; an empty/non-standard scan →
+**N/A**, never a fake A+), plus the top tells. Then summarize: the grade, the
+blockers (each with the one-line why + a fix), and the two or three
+highest-leverage changes to raise it.
 
 ## A pull request
 
@@ -31,9 +33,18 @@ Post the grade + the specific tells as review feedback (optionally
 
 ## A live URL
 
-If given a URL, render + screenshot it (webapp-testing / Playwright), then run the
-adversarial [`slop-detector`](../skills/design-director/references/slop-detector.md)
-on the screenshot — the linter needs source, the detector needs only pixels. Report
-whether an adversary could prove it's AI, with the tells.
+You have no source, but you have the render — so use the **deep tier**. Grade the
+rendered page on real craft metrics (WCAG contrast per text node, accent
+surface-area, spacing rhythm, type-scale coherence, AI layout patterns):
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-render-audit.mjs <url> --viewport 1440x900
+```
+
+Then render + screenshot it (webapp-testing / Playwright) and run the adversarial
+[`slop-detector`](${CLAUDE_PLUGIN_ROOT}/skills/design-director/references/slop-detector.md)
+on the pixels: the render-audit gives the objective numbers (a 2.9:1 contrast is a
+fact), the detector gives the gestalt — "could an adversary prove it's AI." Report
+both, with the tells.
 
 Keep it useful and specific: a grade nobody can act on is noise.

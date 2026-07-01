@@ -31,15 +31,24 @@ their step.
       (`${CLAUDE_PLUGIN_ROOT}/tools/kits/`), drop the purple/gradient, add the
       reduced-motion path, snap off-grid spacing — then **go back to (a).** Loop
       until it exits 0 (cap ~5 rounds; if still stuck, report exactly what and why).
-   c. **Adversarial slop detector** — run the design-director's
+   c. **Render audit (deep tier)** — the grep gate is source-only; now grade the
+      *rendered* result, which is where contrast, accent coverage, rhythm, and
+      layout tells actually live. Render the view and run
+      `node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-render-audit.mjs <url|file.html> --viewport 1440x900`.
+      Fix every WCAG **contrast** failure (real a11y defects), pull any **accent**
+      under ~10% of the surface, and collapse a jittery **spacing rhythm** /
+      scattered **type scale** onto one system. Re-run until the grade is **A/A+
+      with 0 contrast fails.** (Needs a browser; if none is available, say so and skip.)
+   d. **Adversarial slop detector** — run the design-director's
       `references/slop-detector.md`: render + screenshot the view (normal **and**
       `prefers-reduced-motion`), then use an *implementation-blind* judge (a
       subagent given only the screenshots) to try to prove a machine made it.
       Fix every tell it cites; re-render; re-judge until **CLEAN**.
-   d. **Forced subtraction** — remove the single least-justified element, then
+   e. **Forced subtraction** — remove the single least-justified element, then
       confirm the linter still exits 0.
 
-Do not report "done" until the linter exits 0 **and** the detector returns CLEAN.
+Do not report "done" until **both gate tiers pass** (grep linter exits 0 · render
+grade A/A+ with 0 contrast fails) **and** the detector returns CLEAN.
 Then report: the thesis, the chosen direction + kit, the emitted signature
 (palette / face / type ratio / spacing / motion), what you installed and from
 where, the one signature moment, the final linter score, and what you subtracted.

@@ -28,10 +28,10 @@ Walk the `critique.md` checklist across every axis — direction & intent,
 typography, color, space & surface, motion, states & copy, accessibility. Each is
 pass/fail; a "yes, but…" is a fail. List every fail with the fix.
 
-## 3. Run the linter (the Gate — this is the real check)
+## 3. Run the Gate — two tiers (this is the real check)
 
-Run the actual linter over the project — it exits non-zero on slop and token
-violations, so this is a hard gate, not a vibe:
+**Tier A — source (grep, always).** Exits non-zero on slop + token violations, so
+it's a hard gate, not a vibe:
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-lint.mjs <project-dir> --strict
@@ -41,8 +41,24 @@ Every **BLOCKER** must be fixed (default font like Inter/system-ui, AI
 purple/indigo, gradient headline, emoji-as-UI, hype copy, motion without a
 reduced-motion path). Resolve or explicitly justify each **warning** (raw hex,
 arbitrary values, off-grid spacing, maxed radius+shadow, gradient overuse,
-slate/zinc defaults, infinite loops, missing tokens). **Re-run until it exits 0.
-Do not report "done" while the linter fails.**
+slate/zinc defaults, infinite loops, missing tokens). **Re-run until it exits 0.**
+
+**Tier B — the render (deep, whenever a browser is available).** Grep can't see
+contrast, accent coverage, spacing rhythm, or layout patterns — those live only in
+the rendered result. Point it at the running view from step 1 (the dev-server URL
+or the built file):
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-render-audit.mjs <url|file.html> --viewport 1440x900
+```
+
+Fix every **WCAG contrast** failure it names (real a11y defects, not taste), pull
+any single **accent** back under ~10% of the surface, collapse a jittery **spacing
+rhythm** and a scattered **type scale** onto one system, and break up
+**equal-card / centered-hero** layout tells. Re-run until the render grade is
+**A/A+ and contrast fails = 0**.
+
+**Do not report "done" while either tier fails.**
 
 ## 4. Adversarial slop detector (the real bar)
 

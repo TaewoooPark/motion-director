@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <img src="./docs/proof-v3-f-to-a.png" alt="UIForge before/after: no plugin (lint F, 3 blockers) vs UIForge /forge (lint A+, 0 blockers)" width="100%">
+  <img src="./docs/proof-render-audit.png" alt="UIForge deep tier: the LLM default renders at F (17/100) with 5 WCAG contrast failures, 57% accent surface, three identical cards; a committed direction renders at A (94/100)" width="100%">
 </p>
-<p align="center"><sub><em>Same brief, model, and starter — the only variable is the plugin. Left: plain Claude, <b>lint grade F</b>. Right: UIForge via <code>/forge</code>, <b>lint grade A+</b>. Graded by the shipped linter. <a href="#proof-not-vibes">Details ↓</a></em></sub></p>
+<p align="center"><sub><em>The <b>deep tier</b> grades the <b>rendered pixels</b>, not the source — real WCAG contrast, accent surface-area, spacing rhythm, layout tells. Left: the page an LLM emits by default, <b>F (17/100)</b> — 5 contrast failures (the gradient headline is literally 1:1), accent on 57% of the surface, three identical cards. Right: a committed direction, <b>A (94/100)</b>. Graded by the shipped <code>uiforge-render-audit</code> — reproduce: <code>node tools/uiforge-render-audit.mjs docs/examples/slop.html</code>. <a href="#proof-not-vibes">Details ↓</a></em></sub></p>
 
 ---
 
@@ -74,6 +74,7 @@ the model's prior and loses. A gate does not compete. It rejects.
 | Components | Installed from a **taste-graded** registry allowlist (provenance), never invented | Hand-authored variants, or an effect-maximalist dump |
 | The bar for "done" | Linter = 0 **and** an adversary given the pixels can't prove it's AI | "Looks fine to me" (self-graded, skews positive) |
 | Reviewing *someone else's* UI | `uiforge score <dir│PR>` → an A–F grade with the tells | — |
+| Grading the *rendered result* | `uiforge-render-audit <url>` measures real WCAG contrast, accent surface-area, spacing rhythm, layout tells — on the pixels | Self-graded from source if at all; misses contrast / coverage / rhythm entirely |
 | Runs where | Locally, in your Claude Code session; zero-dependency Node | A hosted product / a web app |
 | Your design decisions | Plain text you own — kits, tokens, rules — editable and `git diff`-able | A remote model's opaque behavior |
 
@@ -98,18 +99,34 @@ honest earlier lesson: **prose-only guidance (v2) left 3 blockers — no real
 change. Only the machinery (v3) flipped it F → A+.** Reproduce on any project:
 `node tools/uiforge-lint.mjs <dir>`.
 
+**Two tiers of proof.** The table above is the *source* gate (grep) flipping a
+real run. The hero image up top is the *deep* tier: `uiforge-render-audit`
+renders the page and grades what a keyword can't reach — every text node's real
+WCAG contrast, what % of the surface one accent covers, spacing rhythm and type
+coherence measured from geometry, and layout tells (equal cards, centered hero).
+The LLM default renders at **F (17/100)** with 5 genuine contrast failures (the
+gradient headline is `transparent` → **1:1**); a committed direction at **A
+(94/100)**. You can't dodge a 2.9:1 ratio with a nicer prompt — reproduce:
+`node tools/uiforge-render-audit.mjs docs/examples/slop.html`.
+
 ## The load-bearing principle: slop is a build error
 
 Everything here descends from one move — **turn taste into a gate.**
 
 - A markdown skill is *advice*: it sits in context next to the model's prior and,
   under token/time pressure, loses. (Measured: v2's prose left 3 blockers.)
-- A **linter** is *not advice*. `tools/uiforge-lint.mjs` scans `src`/`app`, names
+- A **linter** is *not advice*. `tools/uiforge-lint.mjs` scans the source, names
   the slop, and **exits non-zero.** Wire it as a pre-commit hook / CI step and
-  slop literally cannot land.
-- `/uiforge:forge` makes the model **iterate against that gate** — build → lint →
-  fix the exact violations → repeat until exit 0 — then run an adversarial
-  detector on the rendered pixels.
+  slop literally cannot land. (The fast, zero-dep tier.)
+- A **render audit** goes where grep can't. `tools/uiforge-render-audit.mjs`
+  renders the page and measures the craft a professional critiques on the
+  *result* — every text node's real WCAG contrast, what % of the surface one
+  accent covers, spacing rhythm and type coherence from geometry, and AI layout
+  tells. Non-gameable: a keyword can't fake a 2.9:1 contrast ratio away. (The deep
+  tier; needs a browser.)
+- `/uiforge:forge` makes the model **iterate against both gates** — build → lint →
+  render-audit → fix the exact violations → repeat until both pass — then run an
+  adversarial detector on the rendered pixels.
 
 The bar is therefore not "the model tried to be tasteful." It is **"an adversary
 handed only the screenshots cannot prove a machine made this."** That is the
@@ -127,7 +144,7 @@ decorating.
 | **3. Signature** | Emit `tokens.css` + `motion.ts` **first**, from a kit | `design-tokens` + `tools/kits/` | a real font, one accent, an 8px scale, a motion signature |
 | **4. Source** | Install vetted components (provenance), never invent | `registry-map.md` + shadcn MCP | real, accessible components |
 | **5. Compose** | One signature moment; everything else quiet; every state designed | `motion`, `content` | the built view |
-| **6. Enforce (loop)** | `uiforge-lint --strict` → fix → repeat until **0**; then the adversarial detector | `/forge`, `/critique`, `slop-detector.md` | a build that passes the gate |
+| **6. Enforce (loop)** | `uiforge-lint --strict` (source) → `uiforge-render-audit` (render) → fix → repeat until **both pass**; then the adversarial detector | `/forge`, `/critique`, `slop-detector.md` | a build that passes both gate tiers |
 | **7. Subtract** | Remove the single least-justified thing | `critique.md` | the accessory taken off |
 
 ## The five directions
@@ -189,6 +206,7 @@ Then in a session, drive the whole pipeline:
 ```
 UIForge/
 ├── README.md · README.ko.md · LICENSE
+├── docs/                                             # proof image + reproducible before/after fixtures
 ├── .claude-plugin/{plugin.json, marketplace.json}   # plugin + self-install marketplace
 ├── .mcp.json                                         # official shadcn MCP (component provenance)
 ├── commands/
@@ -205,11 +223,12 @@ UIForge/
 │   ├── motion/           # the motion layer (Motion-Primitives, one signature, reduced-motion)
 │   │   └── references/{directions, components, recipes, critique, easing-canon}.md
 │   └── content/          # microcopy: outcome labels, real states, hype blocklist
-└── tools/                # executable, zero-dependency Node
-    ├── uiforge-lint.mjs      # the Gate — fails the build on slop
-    ├── uiforge-score.mjs     # A–F grade wrapper (a review tool)
-    ├── create-uiforge.mjs    # scaffold a wired project
-    ├── tokens.template.css   # the token vocabulary
+└── tools/                # executable Node — grep tier zero-dep, render tier uses Playwright
+    ├── uiforge-lint.mjs          # the Gate (source) — fails the build on slop
+    ├── uiforge-render-audit.mjs  # the deep tier (render) — WCAG contrast · accent · rhythm · layout
+    ├── uiforge-score.mjs         # A–F grade wrapper (a review tool)
+    ├── create-uiforge.mjs        # scaffold a wired project
+    ├── tokens.template.css       # the token vocabulary
     └── kits/{editorial,precise,brutalist,warm,maximalist}.css
 ```
 
@@ -219,9 +238,9 @@ UIForge/
 |---|---|
 | `/uiforge:forge <brief>` | Run the whole pipeline: thesis → direction → tokens → source → compose → **loop to linter=0** → detector → subtract |
 | `/uiforge:setup [component]` | Prepare a project's registries (shadcn + @motion-primitives) + `motion`/`lucide-react`/`cn` |
-| `/uiforge:critique` | Judge the current view **blind**: render + screenshot, run the linter, the adversarial detector, and the forced-subtraction pass |
+| `/uiforge:critique` | Judge the current view **blind**: render + screenshot, run **both gate tiers** (source linter + render audit), the adversarial detector, and the forced-subtraction pass |
 | `/uiforge:reskin <image│url>` | Extract a signature (palette, type, rhythm) from a reference into tokens — *steal the vibe, not the pixels* |
-| `/uiforge:score <dir│PR│url>` | Grade any UI **A–F** with the tells — a standalone reviewer / PR bot |
+| `/uiforge:score <dir│PR│url>` | Grade any UI **A–F** with the tells — the source linter for a dir/PR, the **render audit** for a live URL. A standalone reviewer / PR bot |
 
 ## Under the hood
 
@@ -236,6 +255,30 @@ slate/zinc defaults, infinite loops, and a missing token layer. `--strict` fails
 on accumulated warnings too; `--json` for machines. It is **dogfooded**: it
 grades its own A/B runs, and a fresh gap it found (a font hidden in a `const`)
 was fixed the same day.
+
+### The deep tier — `uiforge-render-audit.mjs`
+
+The linter greps source; this **renders** the page (Playwright) and grades the
+*result* — the dimensions a senior designer critiques, all measured, none
+gameable:
+
+- **WCAG contrast**, computed per text node against its true composited background
+  (a `transparent` gradient headline resolves to **1:1** — a real failure grep
+  can't see).
+- **Accent surface-area**, from a non-overlapping sample grid — the *"< 10% of the
+  surface"* rule, finally enforced. Tinted near-white/near-black neutrals (warm
+  paper, ink) count as neutral.
+- **Spacing rhythm** — distinct vertical gaps between siblings, from real geometry,
+  plus % off the 4px grid (not a hardcoded denylist).
+- **Type-scale coherence** — distinct sizes and whether they follow one modular ratio.
+- **AI layout patterns** — *N* equal-width cards in a row; a dead-centered mega-hero.
+
+Same coherent 0–100 → A–F scale as the score tool. The `analyze()` core is pure
+and browser-free (`--self-test` ships as a regression). This is the tier that
+reaches design professionals — a real a11y + craft report on the rendered
+artifact, not a lint of the JSX. Runs inside `/uiforge:critique` and
+`/uiforge:score <url>`, or standalone:
+`node tools/uiforge-render-audit.mjs <url│file.html>`.
 
 ### Ground truth — kits, fonts, reskin
 
@@ -286,6 +329,14 @@ bot-checkpoint, so CI fetches may `429`; interactive installs work.
 **Is the linter too strict?** By default only **BLOCKERs** fail (warnings are
 advisory). `--strict` is zero-tolerance; `--max-score N` tunes it. It's
 opinionated on purpose — that's the point of a gate.
+
+**How deep does the check actually go?** Two tiers. The linter greps *source* for
+the crude tells (font, color, gradient, emoji, hype) — fast, zero-dep, wire it into
+pre-commit. `uiforge-render-audit` renders the page and measures the *result* —
+real WCAG contrast, accent surface-area, spacing rhythm, type coherence, layout
+patterns — which grep structurally can't see. The source tier is necessary; the
+render tier is where "designed vs generic" is actually decided. It's a strong
+signal, not a full audit — it complements axe-core-grade a11y, it doesn't replace it.
 
 **Does it replace my design system?** No. It layers *decisions* on top of good
 fundamentals and real content; it won't rescue a page with nothing to say.
