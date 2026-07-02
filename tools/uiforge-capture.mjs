@@ -240,6 +240,37 @@ async function recordCanvases(page, secs) {
   }, secs)
 }
 
+// Sample JS-driven motion (Framer Motion / GSAP / rAF loops) that isn't in any stylesheet:
+// watch each in-view element's transform+opacity over ~1.3s, and for the ones that actually
+// move, synthesize an approximating looping @keyframes. Approximate by construction — it
+// reproduces property-based motion (translate/scale/rotate/fade), not physics or canvas.
+async function sampleJsMotion(page) {
+  return await page.evaluate(async () => {
+    const all = [...document.querySelectorAll('body *')], idx = new Map(all.map((el, i) => [el, i]))
+    const cands = all.filter(el => { const r = el.getBoundingClientRect(); const c = getComputedStyle(el)
+      return r.width > 16 && r.height > 16 && r.top < innerHeight && r.bottom > 0 && c.animationName === 'none' }).slice(0, 300)
+    const N = 14, track = new Map()
+    for (let f = 0; f < N; f++) {
+      for (const el of cands) { const c = getComputedStyle(el); const k = `${c.transform}|${c.opacity}`
+        if (!track.has(el)) track.set(el, []); track.get(el).push(k) }
+      await new Promise(r => setTimeout(r, 90))
+    }
+    const out = []
+    for (const [el, keys] of track) {
+      if (new Set(keys).size < 3) continue                       // didn't move → not animated
+      if (keys.every(k => k.startsWith('none|'))) continue       // opacity-only flicker w/o transform: skip noise
+      const frames = []
+      for (let f = 0; f < N; f++) { const [tf, op] = keys[f].split('|'); const pct = Math.round(f / (N - 1) * 100)
+        const prev = frames[frames.length - 1]
+        const rule = `${tf !== 'none' ? `transform:${tf};` : ''}opacity:${op}`
+        if (!prev || prev.rule !== rule) frames.push({ pct, rule }) }
+      if (frames.length < 2) continue
+      out.push({ i: idx.get(el), kf: frames.map(fr => `${fr.pct}%{${fr.rule}}`).join(''), dur: (N * 0.09).toFixed(2) })
+    }
+    return out.slice(0, 40)
+  })
+}
+
 /* ------------------------------- harness ------------------------------- */
 async function capture(target, viewport, opts = {}) {
   const chromium = await loadChromium()
@@ -283,6 +314,14 @@ async function capture(target, viewport, opts = {}) {
     // imperatively. So we RECORD it: captureStream() → MediaRecorder → a WebM the
     // reconstruction embeds as a looping <video>. Opt-in (--record-canvas) — each clip ~2s.
     if (opts.recordCanvas) snap.canvasVideos = await recordCanvases(page, opts.canvasSecs || 2.2)
+    // Sample JS-driven motion → synthesized looping @keyframes on the elements that move.
+    // Lift reduced-motion first (we set it for a stable snapshot; but it also freezes the very
+    // JS motion we want to sample — most well-behaved sites honor it).
+    if (opts.sampleMotion) {
+      await page.emulateMedia({ reducedMotion: 'no-preference' }).catch(() => {})
+      await page.waitForTimeout(250)
+      const byId0 = new Map(snap.nodes.map(n => [n.i, n]))
+      for (const m of await sampleJsMotion(page)) { const n = byId0.get(m.i); if (n) n.motion = { kf: m.kf, dur: m.dur } } }
     // Interactive disclosure (dropdowns, menus, accordions): a toggle with aria-controls
     // opens a panel that's hidden at rest. Click each toggle, record the panel's OPEN styles,
     // then restore. Done LAST — the snapshot is already taken, so a misbehaving click is safe.
@@ -328,11 +367,12 @@ if (isMain) {
     console.log(`
   uiforge-capture — a reference's full design, extracted (stage 1 of the clone pipeline).
 
-  node uiforge-capture.mjs <url│file.html> [--out capture.json] [--viewport 1440x900] [--record-canvas] [--summary] [--json]
+  node uiforge-capture.mjs <url│file.html> [--out capture.json] [--viewport 1440x900] [--record-canvas] [--sample-motion] [--json]
 
   Emits capture.json — the styled element tree + a deduped token set (palette,
   type scale, spacing, radii, shadows, fonts). The raw material for reconstruction.
-  --record-canvas also records each <canvas> to a looping .webm (canvas/WebGL heroes).
+  --record-canvas  records each <canvas> to a looping .webm (canvas/WebGL heroes).
+  --sample-motion  samples JS-driven motion (Framer/GSAP/rAF) → looping @keyframes.
 `)
     process.exit(0)
   }
@@ -342,8 +382,9 @@ if (isMain) {
   const valueIdx = new Set(); for (const nm of ['--out', '--viewport']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
   const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
   const recordCanvas = argv.includes('--record-canvas')
+  const sampleMotion = argv.includes('--sample-motion')
 
-  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas })
+  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas, sampleMotion })
   const tokens = tokenize(snap.nodes)
   // write any recorded canvas clips next to the capture, and point the node at its file
   const byId = new Map(snap.nodes.map(n => [n.i, n]))

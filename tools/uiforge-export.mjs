@@ -40,6 +40,7 @@ function styleObj(n) {
   const s = n.style || {}, o = []
   for (const [k, v] of Object.entries(s)) { const prop = CSS[k]; if (prop && v != null && v !== '') o.push(`${JSON.stringify(camel(prop))}: ${JSON.stringify(v)}`) }
   if (n.w) o.push(`width: ${JSON.stringify(n.w + 'px')}`)
+  if (n.motion) o.push(`animation: ${JSON.stringify(`uif-js-${n.i} ${n.motion.dur}s linear infinite`)}`)
   o.push(`boxSizing: "border-box"`)
   return `{{ ${o.join(', ')} }}`
 }
@@ -96,7 +97,8 @@ for (const n of nodes) {
   if (n.focus) interCSS += `.uif-${n.i}:focus-visible{${imp(n.focus)}}\n`
   if (n.active) interCSS += `.uif-${n.i}:active{${imp(n.active)}}\n`
 }
-const extraCSS = '\n\n' + (cap.fontFaces || []).join('\n') + '\n' + (cap.keyframes || []).join('\n') + '\n' + interCSS
+const jsKf = nodes.filter(n => n.motion).map(n => `@keyframes uif-js-${n.i}{${n.motion.kf}}`).join('\n')
+const extraCSS = '\n\n' + (cap.fontFaces || []).join('\n') + '\n' + (cap.keyframes || []).join('\n') + '\n' + jsKf + '\n' + interCSS
 const files = {
   'package.json': JSON.stringify({ name: 'uiforge-clone', private: true, type: 'module', scripts: { dev: 'vite', build: 'vite build', preview: 'vite preview' }, dependencies: { react: '^18.3.1', 'react-dom': '^18.3.1' }, devDependencies: { '@tailwindcss/vite': '^4.0.0', '@vitejs/plugin-react': '^4.3.0', tailwindcss: '^4.0.0', vite: '^5.4.0' } }, null, 2) + '\n',
   'vite.config.ts': `import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\nimport tailwindcss from '@tailwindcss/vite'\n\nexport default defineConfig({ plugins: [react(), tailwindcss()] })\n`,

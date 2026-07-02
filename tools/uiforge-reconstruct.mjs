@@ -71,6 +71,7 @@ function styleOf(n) {
     const allOut = ch.length > 0 && ch.every(c => { const p = (c.style || {}).pos; return p === 'absolute' || p === 'fixed' })
     if (n.h && ((ch.length === 0 && !n.text) || allOut)) decl.push(`min-height:${n.h}px`)
   }
+  if (n.motion) decl.push(`animation:uif-js-${n.i} ${n.motion.dur}s linear infinite`)  // synthesized JS motion
   return decl.join(';')
 }
 function pseudoStyle(ps) {
@@ -124,6 +125,7 @@ for (const n of nodes) {
   if (n.hover) motionCss.push(`.uif-${n.i}:hover{${imp(n.hover)}}`)
   if (n.focus) motionCss.push(`.uif-${n.i}:focus-visible{${imp(n.focus)}}`)
   if (n.active) motionCss.push(`.uif-${n.i}:active{${imp(n.active)}}`)
+  if (n.motion) motionCss.push(`@keyframes uif-js-${n.i}{${n.motion.kf}}`)   // sampled JS motion → looping keyframes
 }
 const faces = motionCss.length ? `<style>\n${motionCss.join('\n')}\n</style>` : ''
 // disclosure runtime: a [data-uif-tog] toggle applies its panel's captured OPEN styles on
