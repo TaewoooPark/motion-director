@@ -13,3 +13,7 @@ node_modules/
 npm-debug.log*
 .env
 .env.local
+
+# SQLite transient sidecars (catalog.db itself IS committed; these are not)
+*.db-wal
+*.db-shm
