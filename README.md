@@ -1,8 +1,8 @@
 <h1 align="center">🔨 UIForge</h1>
 
 <p align="center">
-  <strong>Clone any website's design into clean, editable React + Tailwind — with your content.</strong><br>
-  <em>Point it at a site. UIForge captures its full design (every color, gradient, shadow, font, and box), replays it into a faithful reconstruction, loops a visual diff against the original until it matches, then hands you an editable Vite + React + Tailwind project — populated with <b>your</b> content, and accessible where the original isn't.</em>
+  <strong>Clone any website — design, <em>motion</em>, and <em>interaction</em> — into clean, editable React + Tailwind, with your content.</strong><br>
+  <em>Point it at a site. UIForge captures its full design (every color, gradient, shadow, font, and box), its real webfonts, its <b>CSS animations, hover states, and dropdowns</b>, records its <b>canvas/WebGL heroes to video</b>, and even <b>samples its JS motion</b> — then replays all of it into a faithful reconstruction and hands you an editable Vite + React + Tailwind project, populated with <b>your</b> content.</em>
 </p>
 
 <p align="center">
@@ -26,6 +26,36 @@
   <img src="./docs/clone-linear.png?v=3230" alt="UIForge clone of linear.app, reproduced from the capture alone: the live site and the reconstruction side by side at the same scroll position — the same nav, the same headline in Linear's own Inter Variable webfont, the same copy." width="100%">
 </p>
 <p align="center"><sub><em><b>linear.app, reproduced from the capture alone</b> — no hand-authoring, both panels at the same scroll. <code>capture → reconstruct</code> replays every element's exact styles, geometry, text, and SVGs, and re-declares the site's own <code>@font-face</code> so the headline renders in <b>Linear's real Inter Variable</b> — not a fallback. Then swap in your content and export to an editable React + Tailwind project.</em></sub></p>
+
+<p align="center">
+  <img src="./docs/clone-github.png?v=3310" alt="UIForge clone of github.com, original vs reconstruction side by side — same nav, same headline, same buttons." width="100%">
+</p>
+<p align="center"><sub><em><b>github.com</b> — same nav, headline, and buttons, in GitHub's own type.</em></sub></p>
+
+---
+
+## It clones motion and interaction too — not just a static snapshot
+
+<table>
+<tr>
+<td width="50%" align="center"><img src="./docs/motion-canvas.gif?v=3310" alt="Vercel's canvas/WebGL triangle hero, recorded to a looping video and replayed in the clone" width="100%"></td>
+<td width="50%" align="center"><img src="./docs/interaction-menu.gif?v=3310" alt="A GitHub dropdown menu opening on click inside the reconstruction" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>Canvas / WebGL → video.</b> vercel.com's spinning-triangle hero can't be rebuilt from styles, so UIForge <b>records</b> it and replays it as a looping <code>&lt;video&gt;</code>.</sub></td>
+<td align="center"><sub><b>Dropdowns / menus / accordions.</b> UIForge clicks the real toggle during capture, records the panel's open state, and replays it — the clone's menu <b>opens on click</b>.</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="./docs/motion-js.gif?v=3310" alt="JS-driven motion sampled from gsap.com and replayed as looping CSS keyframes" width="100%"></td>
+<td align="center"><img src="./docs/interaction-hover.gif?v=3310" alt="Hover states replayed in the reconstruction as the cursor moves over interactive elements" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>JS motion → keyframes.</b> Framer / GSAP animate in JS with nothing in the stylesheet — UIForge <b>samples</b> the movement and synthesizes looping <code>@keyframes</code> (gsap.com, above).</sub></td>
+<td align="center"><sub><b>Hover / focus / active.</b> The <code>:hover</code> rules are recovered from the stylesheets and replayed, so the clone <b>reacts to the pointer</b>.</sub></td>
+</tr>
+</table>
+
+<p align="center"><sub><em>All four are produced by the tools from the capture alone — no hand-authoring. CSS animations and scroll-reveal states come across automatically; canvas video and JS-motion sampling are opt-in flags.</em></sub></p>
 
 ---
 
@@ -66,23 +96,40 @@ whose content is yours.
 
 ```
 reference URL
-   │  uiforge-capture       render it, extract EVERY element's exact styles,
-   ▼                        geometry, text, SVGs, and a deduped token set
+   │  uiforge-capture       render it, extract EVERY element's exact styles, geometry,
+   ▼                        text, SVGs + real @font-face, @keyframes, :hover/:focus rules,
+   │                        dropdown open-states, and (opt-in) canvas video + JS motion
 capture.json  ──────────────────────────────────────────────────────────────
    │  uiforge-theme         infer roles (bg/fg/accent/…) → a Tailwind v4 @theme
    ▼
 theme.css / theme.json
-   │  uiforge-reconstruct   replay the capture into a faithful standalone page
-   ▼
+   │  uiforge-reconstruct   replay it all into a faithful, LIVE standalone page
+   ▼                        (webfont, motion, hover, working menus)
 index.html (a high-fidelity baseline, no hand-authoring)
    │  uiforge-diff          render both, pixel-compare, report the worst regions
    ▼  ───── loop: fix those regions until similarity ≥ 90% ─────
    │  content swap          replace the reference's copy with YOUR content,
    ▼                        keeping the components, tokens, and layout
    │  uiforge-export        → a Vite + React + Tailwind v4 project you can edit
-   ▼
+   ▼                        (fonts, keyframes, hover CSS, a useEffect toggle runtime)
 clone/  (npm install && npm run dev)
 ```
+
+### What comes across
+
+| | captured | how |
+|---|---|---|
+| Structure · layout · geometry | ✓ | `getBoundingClientRect` per element |
+| Color · gradient · shadow · border · radius | ✓ | `getComputedStyle` per element |
+| Typography — the **real webfont** | ✓ | `@font-face` fetched server-side (past CORS) |
+| Text — incl. **mixed inline** (links in a sentence) | ✓ | ordered `pre`/`text`/`post` per node |
+| SVG icons & logos | ✓ | captured whole |
+| **CSS animations** (spinners, entrances) | ✓ | `@keyframes` fetched server-side |
+| **Hover / focus / active** states | ✓ | `:hover` rules → `.uif-<i>:hover` companion CSS |
+| **Dropdowns / menus / accordions** | ✓ | clicked during capture → open-state + click runtime |
+| **Scroll-reveal** states & lazy media | ✓ | full scroll-through before snapshot |
+| **Canvas / WebGL** heroes | ✓ *(opt-in)* | `captureStream()` → a looping `<video>` |
+| **JS motion** (Framer / GSAP) | ~ *(opt-in)* | sampled over time → approximating `@keyframes` |
 
 Every value in the reconstruction is produced by the tools, not guessed — the
 signature by `uiforge-theme`, the layout and styles by `uiforge-reconstruct`, the
@@ -111,10 +158,10 @@ overlay**, so it's dominated by **cumulative vertical drift** — flow layout ca
 reproduce a section whose height came from absolutely-positioned art, and a few pixels per
 section compound over a very long page. That metric actually *penalizes* a structurally
 complete reconstruction versus a broken-but-shorter one, so read it as a floor, not a
-ceiling: the visible design matches more closely than the tail number suggests. What
-genuinely can't be reproduced from computed styles is a running **canvas/WebGL** hero
-(Vercel's spinning triangle, Linear's animation) and **lazy/cross-origin media**. Fonts
-used to be on that list; they aren't anymore — see below. Reproduce any of this:
+ceiling: the visible design matches more closely than the tail number suggests. A running
+**canvas/WebGL** hero (Vercel's spinning triangle) can't be *reproduced* from computed
+styles — but it is now **recorded to a looping video** (`--record-canvas`), so it's in the
+clone too; fonts and CSS motion, once on the "can't" list, aren't anymore. Reproduce any of this:
 `node tools/uiforge-capture.mjs <url>` then
 `node tools/uiforge-reconstruct.mjs capture.json` then `node tools/uiforge-diff.mjs <url> index.html`.
 
@@ -135,10 +182,13 @@ external-dependency Node; rendering uses Playwright.
 ### Clone pipeline
 
 ```bash
-node tools/uiforge-capture.mjs   <url│file> [--out capture.json] [--viewport WxH]
+node tools/uiforge-capture.mjs   <url│file> [--out capture.json] [--viewport WxH] [--record-canvas] [--sample-motion]
       # render + extract every element's exact computed styles, geometry, text, SVGs,
-      # assets, hierarchy + a deduped token set (palette, type, spacing, radii, shadows, fonts)
-      # + recovers the real @font-face rules server-side (past the browser's CORS wall)
+      # assets, hierarchy + a deduped token set (palette, type, spacing, radii, shadows, fonts).
+      # Recovers real @font-face, @keyframes, and :hover/:focus rules server-side (past CORS),
+      # explores dropdown open-states, and scrolls the page to fire reveals + load lazy media.
+      #   --record-canvas   record each <canvas> to a looping .webm (canvas/WebGL heroes)
+      #   --sample-motion   sample JS motion (Framer/GSAP) → approximating @keyframes
 
 node tools/uiforge-theme.mjs     capture.json [--out-css theme.css] [--out-json theme.json]
       # infer semantic roles by usage → a Tailwind v4 @theme (bg/fg/muted/surface/border/accent)
@@ -191,23 +241,17 @@ Variable + Berkeley Mono) — the real design system, as a Tailwind v4 `@theme` 
 
 ## Honest limits
 
-- **Webfonts** *(mostly solved)*: the browser can't read cross-origin `@font-face` rules
-  (CORS on `cssRules`), so capture now **fetches the reference's stylesheets server-side**
-  — where CORS doesn't apply — extracts the `@font-face` rules, and re-declares them with
-  absolute URLs. The font files themselves are almost always public (`Access-Control-Allow-Origin: *`),
-  so they load into the reconstruction and text renders in the **real face**. The residual:
-  a font served *without* permissive CORS, or one behind auth, still falls back.
-- **Motion** *(CSS animations recovered; interaction is not, yet)*: capture reads each
-  element's `animation-*` and recovers the referenced `@keyframes` server-side (same trick
-  as the fonts), so **CSS-defined motion replays** — a spinner, an entrance fade/slide.
-  What's *not* yet captured: `:hover`/`:focus` state changes, JS-driven animation (Framer
-  Motion, GSAP, scroll-linked), and click-driven states (menus, tabs, modals). The
-  extraction path for those is proven (the hover/keyframe rules parse straight out of the
-  same stylesheets) — replaying them needs a class+stylesheet layer, not the current inline
-  styles. Tracked as the next phase.
-- **Canvas / WebGL / video**: not reproducible from computed styles — the pixels are drawn
-  imperatively, with no DOM to read. The viable path is to *record* the canvas
-  (`captureStream()` → a looping `<video>`), not to reconstruct it.
+- **Motion & interaction** *(largely captured — see the grid above)*: CSS animations,
+  `:hover`/`:focus`/`:active`, dropdowns/menus/accordions, and scroll-reveal states all
+  come across; canvas/WebGL is recorded to video and JS motion is sampled into keyframes
+  (both opt-in). The **residuals**: menus that open via a *portal* (a new subtree elsewhere
+  in the DOM) rather than restyling their own panel; toggles that live in a removed sticky
+  header; **scroll-linked** timelines and physics-based motion (sampling loops them, it
+  doesn't scrub them to scroll); and truly one-shot entrance animations that finished before
+  capture. JS-motion sampling is *approximate* by nature — it reproduces
+  translate/scale/rotate/fade, not a particle system.
+- **Webfonts**: a font served *without* permissive CORS, or behind auth, still falls back to
+  a system face — everything else renders in the real webfont.
 - **One snapshot**: content behind auth and responsive breakpoints need extra captures (a
   mobile viewport is one flag).
 - **"Clean" is staged**: the export's styling is inline from the capture (faithful,

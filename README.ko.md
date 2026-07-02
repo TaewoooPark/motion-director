@@ -1,8 +1,8 @@
 <h1 align="center">🔨 UIForge</h1>
 
 <p align="center">
-  <strong>어떤 웹사이트의 디자인이든 깔끔하고 편집 가능한 React + Tailwind로 복제한다. 콘텐츠는 당신 것으로.</strong><br>
-  <em>사이트 주소를 알려주면 된다. UIForge는 그 사이트의 디자인 전체를 캡처한다. 모든 색, 그라디언트, 그림자, 폰트, 박스를 담아낸다. 그리고 그것을 충실한 재구성으로 replay하고, 원본과 비교하는 시각 diff를 유사도가 맞을 때까지 반복한다. 끝나면 편집 가능한 Vite + React + Tailwind 프로젝트를 건네준다. 콘텐츠는 <b>당신 것</b>으로 채워지고, 원본이 지키지 못한 접근성까지 갖춘 채로.</em>
+  <strong>어떤 웹사이트든 디자인과 <em>모션</em>과 <em>인터랙션</em>까지 깔끔하고 편집 가능한 React + Tailwind로 복제한다. 콘텐츠는 당신 것으로.</strong><br>
+  <em>사이트 주소를 알려주면 된다. UIForge는 그 사이트의 디자인 전체를 캡처한다. 모든 색, 그라디언트, 그림자, 박스와 함께 진짜 웹폰트, <b>CSS 애니메이션, hover 상태, 드롭다운</b>을 담아내고, <b>canvas나 WebGL 히어로는 영상으로 녹화</b>하며, <b>JS 모션까지 샘플링</b>한다. 그리고 그 전부를 충실한 재구성으로 replay한 뒤 편집 가능한 Vite + React + Tailwind 프로젝트를 건네준다. 콘텐츠는 <b>당신 것</b>으로 채워진 채로.</em>
 </p>
 
 <p align="center">
@@ -26,6 +26,36 @@
   <img src="./docs/clone-linear.png?v=3230" alt="linear.app을 캡처만으로 재현한 UIForge 클론. 라이브 사이트와 재구성을 같은 스크롤 위치에서 나란히 놓았다. 같은 내비게이션, Linear가 실제로 쓰는 Inter Variable 웹폰트로 렌더링된 같은 헤드라인, 같은 문구다." width="100%">
 </p>
 <p align="center"><sub><em><b>linear.app을 캡처만으로 재현한 결과다.</b> 손으로 작성한 부분은 없고 두 화면 모두 같은 스크롤 위치다. <code>capture → reconstruct</code>가 모든 요소의 정확한 스타일, 기하 정보, 텍스트, SVG를 replay하고, 사이트 자신의 <code>@font-face</code>를 다시 선언해 헤드라인이 대체 폰트가 아니라 <b>Linear의 진짜 Inter Variable</b>로 렌더링되게 한다. 그다음 당신의 콘텐츠를 채워 넣고 편집 가능한 React + Tailwind 프로젝트로 내보낸다.</em></sub></p>
+
+<p align="center">
+  <img src="./docs/clone-github.png?v=3310" alt="github.com을 캡처만으로 재현한 UIForge 클론. 원본과 재구성을 나란히 놓았고 내비게이션, 헤드라인, 버튼이 그대로다." width="100%">
+</p>
+<p align="center"><sub><em><b>github.com</b> — 같은 내비게이션, 헤드라인, 버튼을 GitHub 자신의 서체로.</em></sub></p>
+
+---
+
+## 정적 스냅샷이 아니라 모션과 인터랙션까지 복제한다
+
+<table>
+<tr>
+<td width="50%" align="center"><img src="./docs/motion-canvas.gif?v=3310" alt="Vercel의 canvas/WebGL 삼각형 히어로를 영상으로 녹화해 클론에서 반복 재생" width="100%"></td>
+<td width="50%" align="center"><img src="./docs/interaction-menu.gif?v=3310" alt="재구성 안에서 GitHub 드롭다운 메뉴가 클릭에 열린다" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>Canvas / WebGL → 영상.</b> vercel.com의 도는 삼각형 히어로는 스타일로 재구성할 수 없어서 <b>녹화</b>해 반복 재생 <code>&lt;video&gt;</code>로 넣는다.</sub></td>
+<td align="center"><sub><b>드롭다운 · 메뉴 · 아코디언.</b> 캡처 중에 실제 토글을 클릭해 열린 상태를 기록하고 replay한다. 클론의 메뉴가 <b>클릭에 열린다.</b></sub></td>
+</tr>
+<tr>
+<td align="center"><img src="./docs/motion-js.gif?v=3310" alt="gsap.com의 JS 모션을 샘플링해 반복 CSS keyframes로 재생" width="100%"></td>
+<td align="center"><img src="./docs/interaction-hover.gif?v=3310" alt="커서가 인터랙티브 요소 위를 지날 때 재구성에서 hover 상태가 재생된다" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>JS 모션 → keyframes.</b> Framer나 GSAP는 JS로 움직여 스타일시트에 아무것도 없다. UIForge가 움직임을 <b>샘플링</b>해 반복 <code>@keyframes</code>로 합성한다(위는 gsap.com).</sub></td>
+<td align="center"><sub><b>hover · focus · active.</b> <code>:hover</code> 규칙을 스타일시트에서 복구해 replay하므로 클론이 <b>포인터에 반응한다.</b></sub></td>
+</tr>
+</table>
+
+<p align="center"><sub><em>네 가지 모두 캡처만으로 도구가 만들어낸다. 손으로 작성한 부분은 없다. CSS 애니메이션과 스크롤 등장 상태는 자동으로 넘어오고, canvas 영상과 JS 모션 샘플링은 선택 플래그다.</em></sub></p>
 
 ---
 
@@ -63,23 +93,40 @@ stripe.com과 같은 디자인으로 내 제품 사이트를 만들어줘 (produ
 
 ```
 레퍼런스 URL
-   │  uiforge-capture       렌더링 후 모든 요소의 정확한 스타일,
-   ▼                        기하 정보, 텍스트, SVG, 그리고 정리된 토큰셋을 추출
+   │  uiforge-capture       렌더링 후 모든 요소의 정확한 스타일, 기하 정보, 텍스트, SVG와
+   ▼                        진짜 @font-face, @keyframes, :hover/:focus 규칙, 드롭다운 열린
+   │                        상태, 그리고 (선택) canvas 영상 + JS 모션을 추출
 capture.json  ──────────────────────────────────────────────────────────────
    │  uiforge-theme         역할(bg/fg/accent 등)을 추론해 Tailwind v4 @theme로
    ▼
 theme.css / theme.json
-   │  uiforge-reconstruct   캡처를 충실한 자립형 페이지로 replay
-   ▼
+   │  uiforge-reconstruct   그 전부를 충실하고 살아있는 자립형 페이지로 replay
+   ▼                        (웹폰트, 모션, hover, 작동하는 메뉴)
 index.html (손으로 작성하지 않은 고충실도 베이스라인)
    │  uiforge-diff          둘을 렌더링해 픽셀 비교, 가장 다른 영역을 보고
    ▼  ───── 루프: 유사도가 90% 이상 될 때까지 그 영역들을 수정 ─────
    │  콘텐츠 교체            레퍼런스의 문구를 당신의 콘텐츠로 교체하되,
    ▼                        컴포넌트, 토큰, 레이아웃은 그대로 유지
    │  uiforge-export        → 편집 가능한 Vite + React + Tailwind v4 프로젝트로
-   ▼
+   ▼                        (폰트, keyframes, hover CSS, useEffect 토글 런타임)
 clone/  (npm install && npm run dev)
 ```
+
+### 무엇이 넘어오는가
+
+| | 캡처됨 | 방법 |
+|---|---|---|
+| 구조 · 레이아웃 · 기하 | ✓ | 요소마다 `getBoundingClientRect` |
+| 색 · 그라디언트 · 그림자 · 보더 · radius | ✓ | 요소마다 `getComputedStyle` |
+| 타이포그래피 — **진짜 웹폰트** | ✓ | `@font-face`를 서버 측에서 fetch(CORS 우회) |
+| 텍스트 — **혼합 인라인**(문장 속 링크) 포함 | ✓ | 노드마다 순서 보존 `pre`/`text`/`post` |
+| SVG 아이콘·로고 | ✓ | 통째로 캡처 |
+| **CSS 애니메이션**(스피너, 등장) | ✓ | `@keyframes`를 서버 측에서 fetch |
+| **hover / focus / active** 상태 | ✓ | `:hover` 규칙 → `.uif-<i>:hover` 동반 CSS |
+| **드롭다운 · 메뉴 · 아코디언** | ✓ | 캡처 중 클릭 → 열린 상태 + 클릭 런타임 |
+| **스크롤 등장** 상태 · 지연 미디어 | ✓ | 스냅샷 전 페이지 전체 스크롤 |
+| **canvas / WebGL** 히어로 | ✓ *(선택)* | `captureStream()` → 반복 `<video>` |
+| **JS 모션**(Framer / GSAP) | ~ *(선택)* | 시간에 걸쳐 샘플링 → 근사 `@keyframes` |
 
 재구성의 모든 값은 추측이 아니라 도구가 산출한 것이다. 시그니처는 `uiforge-theme`가, 레이아웃과 스타일은 `uiforge-reconstruct`가 만들고, 일치 여부는 `uiforge-diff`가 검증한다. 그리고 클론은 접근성 검사를 통과한다(`uiforge-render-audit`). 겉모습은 같지만, 원본이 지키지 못했을 수도 있는 WCAG 대비를 만족한다.
 
@@ -94,7 +141,7 @@ clone/  (npm install && npm run dev)
 | **linear.app** | 1023 | **92.8%** |
 | tailwindcss.com | 1122 | 71% |
 
-**깔끔하고 중간 규모인 사이트는 93~96%로 재현되고, linear.app처럼 밀도 높은 마케팅 홈페이지조차 이제 92.8%에 이른다.** 위 히어로가 보여주듯 내비게이션과 색과 문구, 그리고 Linear 자신의 `@font-face`를 다시 선언해 되살린 **Inter Variable** 헤드라인까지 사실상 동일하다. 수치가 떨어지는 것은 *가장 길고 겹이 많은* 페이지(tailwindcss.com, 약 11,000픽셀)이고, 이유는 정직하게 하나다. 점수가 **페이지 전체를 픽셀로 겹친 값**이라 **누적된 세로 밀림**이 지배한다. 절대 위치로 배치된 그래픽에서 높이가 나오는 섹션은 흐름 레이아웃으로 완벽히 재현할 수 없고, 섹션마다 몇 픽셀씩 밀린 것이 아주 긴 페이지에서는 쌓인다. 이 지표는 구조적으로 온전한 재구성을, 깨졌지만 더 짧은 재구성보다 오히려 낮게 매기기도 한다. 그러니 천장이 아니라 바닥으로 읽어야 한다. 눈에 보이는 디자인은 이 꼬리 수치가 말하는 것보다 더 가깝다. computed 스타일로 정말 재현할 수 없는 것은 실행 중인 **canvas나 WebGL** 히어로(Vercel의 도는 삼각형, Linear의 애니메이션)와 **지연 로딩되거나 크로스오리진인 미디어**다. 폰트도 한때 이 목록에 있었지만 이제는 아니다. 아래를 보라. 위 결과는 누구나 재현할 수 있다. `node tools/uiforge-capture.mjs <url>` 다음 `node tools/uiforge-reconstruct.mjs capture.json` 다음 `node tools/uiforge-diff.mjs <url> index.html`.
+**깔끔하고 중간 규모인 사이트는 93~96%로 재현되고, linear.app처럼 밀도 높은 마케팅 홈페이지조차 이제 92.8%에 이른다.** 위 히어로가 보여주듯 내비게이션과 색과 문구, 그리고 Linear 자신의 `@font-face`를 다시 선언해 되살린 **Inter Variable** 헤드라인까지 사실상 동일하다. 수치가 떨어지는 것은 *가장 길고 겹이 많은* 페이지(tailwindcss.com, 약 11,000픽셀)이고, 이유는 정직하게 하나다. 점수가 **페이지 전체를 픽셀로 겹친 값**이라 **누적된 세로 밀림**이 지배한다. 절대 위치로 배치된 그래픽에서 높이가 나오는 섹션은 흐름 레이아웃으로 완벽히 재현할 수 없고, 섹션마다 몇 픽셀씩 밀린 것이 아주 긴 페이지에서는 쌓인다. 이 지표는 구조적으로 온전한 재구성을, 깨졌지만 더 짧은 재구성보다 오히려 낮게 매기기도 한다. 그러니 천장이 아니라 바닥으로 읽어야 한다. 눈에 보이는 디자인은 이 꼬리 수치가 말하는 것보다 더 가깝다. 실행 중인 **canvas나 WebGL** 히어로(Vercel의 도는 삼각형)는 computed 스타일로 *재현*할 수 없지만, 이제 **반복 재생 영상으로 녹화**되어(`--record-canvas`) 클론에도 들어간다. 폰트와 CSS 모션도 한때 "안 되는" 목록에 있었지만 이제는 아니다. 위 결과는 누구나 재현할 수 있다. `node tools/uiforge-capture.mjs <url>` 다음 `node tools/uiforge-reconstruct.mjs capture.json` 다음 `node tools/uiforge-diff.mjs <url> index.html`.
 
 ## 윤리, 사칭용 클론이 아니라 리디자인 스캐폴드
 
@@ -109,10 +156,13 @@ clone/  (npm install && npm run dev)
 ### 복제 파이프라인
 
 ```bash
-node tools/uiforge-capture.mjs   <url│file> [--out capture.json] [--viewport WxH]
+node tools/uiforge-capture.mjs   <url│file> [--out capture.json] [--viewport WxH] [--record-canvas] [--sample-motion]
       # 렌더링 후 모든 요소의 정확한 computed 스타일, 기하학, 텍스트, SVG, 에셋,
-      # 계층 구조와 정리된 토큰셋(팔레트, 타입, 간격, radii, 그림자, 폰트)을 추출
-      # 브라우저의 CORS 벽 너머에서 진짜 @font-face 규칙까지 서버 측에서 되찾아낸다
+      # 계층 구조와 정리된 토큰셋을 추출. 진짜 @font-face, @keyframes, :hover/:focus 규칙을
+      # 서버 측에서 복구(CORS 우회)하고, 드롭다운 열린 상태를 탐색하며, 페이지를 스크롤해
+      # 등장 애니메이션을 발동하고 지연 미디어를 로드한다.
+      #   --record-canvas   각 <canvas>를 반복 .webm으로 녹화(canvas/WebGL 히어로)
+      #   --sample-motion   JS 모션(Framer/GSAP)을 샘플링 → 근사 @keyframes
 
 node tools/uiforge-theme.mjs     capture.json [--out-css theme.css] [--out-json theme.json]
       # 사용 방식으로 시맨틱 역할을 추론해 Tailwind v4 @theme로 (bg/fg/muted/surface/border/accent)
@@ -152,9 +202,8 @@ node tools/uiforge-lint.mjs         <dir> [--strict]
 
 ## 정직한 한계
 
-- **웹폰트** *(대체로 해결됨)*. 브라우저는 크로스오리진 `@font-face` 규칙을 읽지 못한다(`cssRules`에 CORS가 걸린다). 그래서 이제 캡처가 레퍼런스의 스타일시트를 **서버 측에서 가져와서**(서버 요청에는 CORS가 적용되지 않는다) `@font-face` 규칙을 뽑아내고 절대 URL로 다시 선언한다. 폰트 파일 자체는 거의 항상 공개되어 있어(`Access-Control-Allow-Origin: *`) 재구성에 그대로 로드되고, 텍스트가 **진짜 폰트**로 렌더링된다. 남는 것은 이렇다. CORS를 허용하지 않고 제공되는 폰트나 인증 뒤에 있는 폰트는 여전히 대체 폰트로 떨어진다.
-- **모션** *(CSS 애니메이션은 복구, 인터랙션은 아직).* 캡처가 각 요소의 `animation-*` 값을 읽고 참조된 `@keyframes`를 서버 측에서 복구한다(폰트와 같은 방식). 그래서 **CSS로 정의된 모션은 replay된다**. 스피너나 등장 페이드/슬라이드 같은 것들이다. 아직 안 되는 것은 이렇다. `:hover`/`:focus` 상태 변화, JS로 구동되는 애니메이션(Framer Motion, GSAP, 스크롤 연동), 클릭으로 열리는 상태(메뉴, 탭, 모달). 추출 경로 자체는 증명됐다(hover와 keyframe 규칙이 같은 스타일시트에서 그대로 파싱된다). 다만 그것을 replay하려면 지금의 인라인 스타일이 아니라 클래스와 스타일시트 층이 필요하다. 다음 단계로 추적 중이다.
-- **canvas / WebGL / 비디오.** computed 스타일로는 재현할 수 없다. 픽셀이 명령형으로 그려져 읽을 DOM이 없다. 현실적인 경로는 재구성이 아니라 캔버스를 *녹화*하는 것이다(`captureStream()`으로 반복 재생되는 `<video>`).
+- **모션과 인터랙션** *(대부분 캡처됨, 위 표 참고).* CSS 애니메이션, `:hover`/`:focus`/`:active`, 드롭다운·메뉴·아코디언, 스크롤 등장 상태가 모두 넘어온다. canvas/WebGL은 영상으로 녹화되고 JS 모션은 keyframes로 샘플링된다(둘 다 선택). **남는 것**은 이렇다. 자기 패널을 다시 칠하는 대신 *포털*(DOM 다른 곳의 새 서브트리)로 열리는 메뉴, 제거된 고정 헤더 안에 있는 토글, **스크롤 연동** 타임라인과 물리 기반 모션(샘플링은 반복 재생할 뿐 스크롤에 맞춰 스크럽하지 못한다), 캡처 전에 이미 끝난 일회성 등장 애니메이션. JS 모션 샘플링은 본질적으로 근사다. 이동·확대·회전·페이드는 재현하지만 파티클 시스템은 아니다.
+- **웹폰트.** CORS를 허용하지 않고 제공되는 폰트나 인증 뒤에 있는 폰트는 여전히 시스템 폰트로 떨어진다. 그 외에는 전부 진짜 웹폰트로 렌더링된다.
 - **한 장의 스냅샷.** 인증 뒤의 콘텐츠와 반응형 브레이크포인트는 캡처를 더 떠야 한다(모바일 뷰포트는 플래그 하나면 된다).
 - **"깔끔함"은 단계적이다.** 내보낸 결과물의 스타일은 캡처에서 온 인라인이다(충실하고 편집 가능하며 테마가 추출되어 있다). 그것을 관용적인 Tailwind 유틸리티와 컴포넌트로 끌어올리는 일은 `/clone`의 에이전트 단계이며, 아직 완전히 자동은 아니다.
 
