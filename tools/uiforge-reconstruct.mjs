@@ -85,6 +85,8 @@ const pseudo = p => (p && p.content !== 'none') ? `<span style="${attr(pseudoSty
 
 function render(n, depth) {
   if (depth > 40) return ''
+  // a recorded canvas/WebGL hero → a looping muted video sized exactly like the canvas
+  if (n.video) return `<video src="${attr(n.video)}" autoplay loop muted playsinline style="${attr(styleOf(n))}"></video>`
   if (n.svgHTML) return `<div style="${attr(styleOf(n))}">${n.svgHTML}</div>`  // replay the captured SVG whole
   const tag = /^[a-z][a-z0-9]*$/.test(n.tag) ? n.tag : 'div'
   const st = styleOf(n)

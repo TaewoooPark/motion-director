@@ -192,8 +192,36 @@ async function recoverCss(sheetHrefs, already = [], usedAnim = new Set()) {
   return { fontFaces: faces.slice(0, 40), keyframes: [...kf.values()].slice(0, 40) }
 }
 
+// Record each on-screen <canvas> to a WebM via captureStream() + MediaRecorder (runs in
+// the page — the only way to tap live WebGL/2d pixels). Returns [{ i, w, h, b64 }] keyed by
+// the same body-order index the node tree uses, so reconstruct can place the <video> exactly.
+async function recordCanvases(page, secs) {
+  return await page.evaluate(async (secs) => {
+    const all = [...document.querySelectorAll('body *')]
+    const out = []
+    for (let i = 0; i < all.length && out.length < 4; i++) {
+      const el = all[i]
+      if (el.tagName !== 'CANVAS') continue
+      const r = el.getBoundingClientRect()
+      if (r.width < 40 || r.height < 40) continue
+      if (typeof el.captureStream !== 'function') continue
+      try {
+        const stream = el.captureStream(30)
+        const rec = new MediaRecorder(stream, { mimeType: 'video/webm' })
+        const chunks = []; rec.ondataavailable = e => e.data.size && chunks.push(e.data)
+        rec.start(); await new Promise(r => setTimeout(r, secs * 1000))
+        await new Promise(r => { rec.onstop = r; rec.stop() })
+        const buf = await new Blob(chunks, { type: 'video/webm' }).arrayBuffer()
+        let bin = ''; const bytes = new Uint8Array(buf); for (let j = 0; j < bytes.length; j++) bin += String.fromCharCode(bytes[j])
+        if (bytes.length > 1024) out.push({ i, w: Math.round(r.width), h: Math.round(r.height), b64: btoa(bin) })
+      } catch {}
+    }
+    return out
+  }, secs)
+}
+
 /* ------------------------------- harness ------------------------------- */
-async function capture(target, viewport) {
+async function capture(target, viewport, opts = {}) {
   const chromium = await loadChromium()
   if (!chromium) { console.error('\n  Playwright not found:  npm i -D playwright && npx playwright install chromium\n'); process.exit(3) }
   const url = /^https?:|^file:/.test(target) ? target : pathToFileURL(path.resolve(target)).href
@@ -215,6 +243,11 @@ async function capture(target, viewport) {
     await page.evaluate(() => { for (const el of document.querySelectorAll('body *')) { const cs = getComputedStyle(el); if ((cs.position === 'fixed' || cs.position === 'sticky') && el.getBoundingClientRect().height > 140) el.remove() } document.documentElement.style.overflow = 'auto' }).catch(() => {})
     await page.waitForTimeout(300)
     var snap = await page.evaluate(`(${CAPTURE.toString()})()`)
+    // Canvas/WebGL can't be reproduced from computed styles — the pixels are drawn
+    // imperatively. So we RECORD it: captureStream() → MediaRecorder → a WebM the
+    // reconstruction embeds as a looping <video>. This is the only faithful path for a
+    // spinning-triangle / shader hero. Opt-in (--record-canvas) since each clip costs ~2s.
+    if (opts.recordCanvas) snap.canvasVideos = await recordCanvases(page, opts.canvasSecs || 2.2)
   } finally { await browser.close() }
   // server-side: recover the @font-face + used @keyframes rules the browser can't read past CORS
   const usedAnim = new Set()
@@ -233,10 +266,11 @@ if (isMain) {
     console.log(`
   uiforge-capture — a reference's full design, extracted (stage 1 of the clone pipeline).
 
-  node uiforge-capture.mjs <url│file.html> [--out capture.json] [--viewport 1440x900] [--summary] [--json]
+  node uiforge-capture.mjs <url│file.html> [--out capture.json] [--viewport 1440x900] [--record-canvas] [--summary] [--json]
 
   Emits capture.json — the styled element tree + a deduped token set (palette,
   type scale, spacing, radii, shadows, fonts). The raw material for reconstruction.
+  --record-canvas also records each <canvas> to a looping .webm (canvas/WebGL heroes).
 `)
     process.exit(0)
   }
@@ -245,9 +279,18 @@ if (isMain) {
   const outPath = valAt('--out') || 'capture.json'
   const valueIdx = new Set(); for (const nm of ['--out', '--viewport']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
   const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
+  const recordCanvas = argv.includes('--record-canvas')
 
-  const snap = await capture(target, { width: vw, height: vh })
+  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas })
   const tokens = tokenize(snap.nodes)
+  // write any recorded canvas clips next to the capture, and point the node at its file
+  const byId = new Map(snap.nodes.map(n => [n.i, n]))
+  const base = outPath.replace(/\.json$/, '')
+  for (const v of snap.canvasVideos || []) {
+    const file = `${base}.canvas-${v.i}.webm`
+    writeFileSync(file, Buffer.from(v.b64, 'base64'))
+    const node = byId.get(v.i); if (node) node.video = file.split('/').pop()
+  }
   const out = { source: target, capturedAt: null, viewport: snap.viewport, title: snap.title, sheets: snap.sheets || [], fontFaces: snap.fontFaces || [], keyframes: snap.keyframes || [], tokens, nodes: snap.nodes }
 
   if (argv.includes('--json')) { console.log(JSON.stringify(out, null, 2)); process.exit(0) }

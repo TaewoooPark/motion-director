@@ -12,7 +12,7 @@
 
 import process from 'node:process'
 import path from 'node:path'
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs'
 
 const CSS = { dsp: 'display', pos: 'position', top: 'top', rgt: 'right', bot: 'bottom', lft: 'left', z: 'zIndex', ov: 'overflow', fd: 'flexDirection', fw: 'flexWrap', jc: 'justifyContent', ai: 'alignItems', gap: 'gap', gtc: 'gridTemplateColumns', gtr: 'gridTemplateRows', gcol: 'gridColumn', grow_: 'gridRow', fg: 'flexGrow', fsh: 'flexShrink', fb: 'flexBasis', mt: 'marginTop', mr: 'marginRight', mb: 'marginBottom', ml: 'marginLeft', pt: 'paddingTop', pr: 'paddingRight', pb: 'paddingBottom', pl: 'paddingLeft', ff: 'fontFamily', fs: 'fontSize', fwt: 'fontWeight', fst: 'fontStyle', lh: 'lineHeight', ls: 'letterSpacing', ta: 'textAlign', tt: 'textTransform', td: 'textDecoration', col: 'color', ws: 'whiteSpace', bc: 'backgroundColor', bi: 'backgroundImage', bsz: 'backgroundSize', bp: 'backgroundPosition', br: 'backgroundRepeat', bwt: 'borderTopWidth', bwr: 'borderRightWidth', bwb: 'borderBottomWidth', bwl: 'borderLeftWidth', bct: 'borderTopColor', bcr: 'borderRightColor', bcb: 'borderBottomColor', bcl: 'borderLeftColor', rtl: 'borderTopLeftRadius', rtr: 'borderTopRightRadius', rbr: 'borderBottomRightRadius', rbl: 'borderBottomLeftRadius', sh: 'boxShadow', op: 'opacity', flt: 'filter', bdf: 'backdropFilter', tf: 'transform', tr: 'transition', mbm: 'mixBlendMode' }
 const camel = s => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
@@ -45,6 +45,10 @@ function styleObj(n) {
 }
 function toJSX(n, d) {
   if (d > 40) return ''
+  if (n.video) {
+    // a recorded canvas/WebGL hero → a looping muted video (asset copied into /public)
+    return `<video src=${JSON.stringify('/' + n.video)} autoPlay loop muted playsInline style=${styleObj(n)} />`
+  }
   if (n.svgHTML) {
     // SVG stays as raw markup via dangerouslySetInnerHTML on a positioned wrapper
     return `<div style=${styleObj(n)} dangerouslySetInnerHTML={{ __html: ${JSON.stringify(n.svgHTML)} }} />`
@@ -78,6 +82,14 @@ const files = {
 }
 mkdirSync(path.join(outDir, 'src'), { recursive: true })
 for (const [f, c] of Object.entries(files)) writeFileSync(path.join(outDir, f), c)
+
+// copy any recorded canvas videos (referenced by node.video) into /public
+const vids = [...new Set(nodes.filter(n => n.video).map(n => n.video))]
+if (vids.length) {
+  mkdirSync(path.join(outDir, 'public'), { recursive: true })
+  const srcDir = path.dirname(path.resolve(capPath))
+  for (const v of vids) { const from = path.join(srcDir, v); if (existsSync(from)) copyFileSync(from, path.join(outDir, 'public', v)) }
+}
 
 const B = '\x1b[1m', D = '\x1b[2m', G = '\x1b[32m', X = '\x1b[0m'
 console.log(`\n  ${B}UIForge export${X} ${D}(${nodes.length} nodes → React + Tailwind)${X}`)
