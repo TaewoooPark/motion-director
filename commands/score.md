@@ -39,9 +39,12 @@ surface-area, spacing rhythm, type-scale coherence, AI layout patterns):
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-render-audit.mjs <url> --viewport 1440x900
+node ${CLAUDE_PLUGIN_ROOT}/tools/uiforge-attention.mjs   <url> --viewport 1440x900
 ```
 
-Then render + screenshot it (webapp-testing / Playwright) and run the adversarial
+The render audit grades the craft; **attention** predicts the gaze order and flags a
+flat hierarchy (add `--overlay shot.png` to attach the annotated punch list). Then
+render + screenshot it (webapp-testing / Playwright) and run the adversarial
 [`slop-detector`](${CLAUDE_PLUGIN_ROOT}/skills/design-director/references/slop-detector.md)
 on the pixels: the render-audit gives the objective numbers (a 2.9:1 contrast is a
 fact), the detector gives the gestalt — "could an adversary prove it's AI." Report

@@ -88,6 +88,9 @@ install the top picks     semantic × style(radii) × taste(a11y · radix · var
 render-audit --spec       grade reference-relative until it MATCHES — contrast stays absolute
 ```
 
+<p align="center"><img src="./docs/pipeline.png" alt="The UIForge pipeline on a real run: reference → extracted signature → catalog-ranked component picks → reference-relative gate (grade A+, eye lands on the headline #1, 0 contrast fails)" width="100%"></p>
+<p align="center"><sub><em>The stages on a real run (<code>docs/examples/good.html</code>): every value is produced by the tools — the signature by <code>uiforge-extract</code>, the picks by <code>uiforge-source</code>, the grade by <code>render-audit --spec</code>, the focal point by <code>uiforge-attention</code>.</em></sub></p>
+
 **Taste is relative; accessibility is not.** The same `slop.html`, three reference frames:
 
 | graded against… | render-audit |

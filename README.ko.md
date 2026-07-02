@@ -84,6 +84,9 @@ install the top picks     semantic × style(radii) × taste(a11y · radix · var
 render-audit --spec       매칭될 때까지 reference-relative 채점 — 대비는 절대
 ```
 
+<p align="center"><img src="./docs/pipeline.png" alt="UIForge 파이프라인 실제 실행: 레퍼런스 → 추출된 시그니처 → 카탈로그 랭킹 컴포넌트 → reference-relative 게이트 (grade A+, 시선이 헤드라인 #1, 대비 실패 0)" width="100%"></p>
+<p align="center"><sub><em>실제 실행(<code>docs/examples/good.html</code>)의 단계들 — 모든 값은 툴이 산출: 시그니처는 <code>uiforge-extract</code>, picks는 <code>uiforge-source</code>, grade는 <code>render-audit --spec</code>, 초점은 <code>uiforge-attention</code>.</em></sub></p>
+
 **취향은 상대적, 접근성은 절대적.** 같은 `slop.html`을 세 레퍼런스 프레임으로:
 
 | 채점 기준 | render-audit |
