@@ -1,0 +1,95 @@
+{
+  "summary": {
+    "viewport": "1440x900",
+    "n": 6,
+    "ran": 6,
+    "failed": 0,
+    "designed": {
+      "label": "designed",
+      "n": 3,
+      "meanPct": 91.3,
+      "min": 86,
+      "max": 94,
+      "meanContrastFails": 0,
+      "flatPct": 0
+    },
+    "template": {
+      "label": "template",
+      "n": 3,
+      "meanPct": 39,
+      "min": 17,
+      "max": 57,
+      "meanContrastFails": 3.7,
+      "flatPct": 67
+    },
+    "separation": 52.3
+  },
+  "results": [
+    {
+      "ref": "../../docs/examples/good.html",
+      "label": "designed",
+      "note": "editorial (calibration)",
+      "status": "ok",
+      "grade": "A",
+      "pct": 94,
+      "contrastFails": 0,
+      "accentPct": 0,
+      "hierarchy": "ok"
+    },
+    {
+      "ref": "fixtures/precise.html",
+      "label": "designed",
+      "note": "swiss / tech (calibration)",
+      "status": "ok",
+      "grade": "B",
+      "pct": 86,
+      "contrastFails": 0,
+      "accentPct": 0,
+      "hierarchy": "ok"
+    },
+    {
+      "ref": "fixtures/brutalist.html",
+      "label": "designed",
+      "note": "brutalist (calibration)",
+      "status": "ok",
+      "grade": "A",
+      "pct": 94,
+      "contrastFails": 0,
+      "accentPct": 1.1,
+      "hierarchy": "weak"
+    },
+    {
+      "ref": "../../docs/examples/slop.html",
+      "label": "template",
+      "note": "purple saas (calibration)",
+      "status": "ok",
+      "grade": "F",
+      "pct": 17,
+      "contrastFails": 5,
+      "accentPct": 50,
+      "hierarchy": "flat"
+    },
+    {
+      "ref": "fixtures/saas.html",
+      "label": "template",
+      "note": "generic saas (calibration)",
+      "status": "ok",
+      "grade": "F",
+      "pct": 43,
+      "contrastFails": 5,
+      "accentPct": 0,
+      "hierarchy": "weak"
+    },
+    {
+      "ref": "fixtures/gradient.html",
+      "label": "template",
+      "note": "gradient hero (calibration)",
+      "status": "ok",
+      "grade": "F",
+      "pct": 57,
+      "contrastFails": 1,
+      "accentPct": 58.9,
+      "hierarchy": "flat"
+    }
+  ]
+}

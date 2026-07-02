@@ -140,6 +140,19 @@ Grotesk, system-ui 아님) → `tokens.css` + `motion.ts` 방출 → `uiforge-li
 headline이 `transparent`라 **1:1**), 확정된 방향은 **A(94/100)**. 더 나은 프롬프트로 2.9:1
 대비를 피할 수는 없다 — 재현: `node tools/uiforge-render-audit.mjs docs/examples/slop.html`.
 
+**세 번째 층위 — 그리고 정직한 caveat.** 등급은 두 페이지에서만 보정된 게 아니다.
+`uiforge-corpus`는 라벨된 **코퍼스**에 render audit을 돌려 등급이 클래스를 가르는지
+보고한다. 배송된 보정 세트에서 분리는 깨끗하다 — **designed 91.3 vs template 39,
++52.3 pts** — 그리고 재현 가능하다(`node tools/uiforge-corpus.mjs`), 인용된 통계가 아니라:
+
+<p align="center"><img src="./docs/corpus.png" alt="코퍼스 분리: designed ~91/100, template ~39/100, +52.3 포인트 격차; 헤비 프로덕션 사이트는 스냅샷 경화 필요라는 정직한 caveat" width="100%"></p>
+
+그리고 대부분의 도구가 숨길 부분 — **헤비 프로덕션 사이트**에선 above-fold 스냅샷이
+쿠키월·진입 애니메이션·로딩 상태에 오염된다. Linear/Stripe가 F인 건 슬롭이라서가 아니라
+스냅샷이 전환 중인 히어로를 잡았기 때문이다(빨리 정착하는 Vercel은 B). 지표는 정착된
+렌더엔 신뢰성 있고, 라이브 사이트 검증엔 스냅샷 경화(오버레이 제거·정착 대기·full-page)가
+필요하다. 숨기지 않고 범위를 그은 것 — 조작된 "+X% CTR"의 반대다.
+
 ## 핵심 원리: slop은 빌드 에러다
 
 여기 모든 것은 한 수에서 파생된다 — **취향을 게이트로 만든다.**
@@ -255,6 +268,7 @@ UIForge/
     ├── uiforge-source.mjs        # 시그니처 fit으로 카탈로그 랭킹 (semantic × style × taste)
     ├── uiforge-harvest.mjs       # 카탈로그 구축: 레지스트리 fetch → catalog.db
     ├── uiforge-catalog.mjs       # 카탈로그 질의 — stats · search · show · near
+    ├── uiforge-corpus.mjs        # 실증 검증 — 라벨된 코퍼스 채점, 분리 보고
     ├── uiforge-score.mjs         # A–F 등급 래퍼 (리뷰 도구)
     ├── create-uiforge.mjs        # 배선된 프로젝트 스캐폴드
     ├── tokens.template.css       # 토큰 어휘

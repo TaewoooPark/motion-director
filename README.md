@@ -152,6 +152,21 @@ gradient headline is `transparent` → **1:1**); a committed direction at **A
 (94/100)**. You can't dodge a 2.9:1 ratio with a nicer prompt — reproduce:
 `node tools/uiforge-render-audit.mjs docs/examples/slop.html`.
 
+**Three tiers of proof — and an honest caveat.** The grade isn't just calibrated on
+two pages. `uiforge-corpus` runs the render audit over a **labeled corpus** and
+reports whether the grades separate the classes. On the shipped calibration set the
+separation is clean — **designed 91.3 vs template 39, +52.3 pts** — and it's
+reproducible (`node tools/uiforge-corpus.mjs`), not a quoted statistic:
+
+<p align="center"><img src="./docs/corpus.png" alt="Corpus separation: designed pages cluster at ~91/100, template pages at ~39/100, a +52.3 point gap; with an honest caveat that heavy production sites need snapshot hardening" width="100%"></p>
+
+And the part most tools would hide: on **heavy production sites** the above-fold
+snapshot is confounded by cookie walls, entrance animations, and load states — Linear
+and Stripe grade F not because they're slop but because the snapshot caught a
+transitional hero (Vercel, which settles fast, scored B). The metric is reliable on
+settled renders; live-site validation needs snapshot hardening. Scoped, not hidden —
+which is the opposite of a manufactured "+X% CTR."
+
 ## The load-bearing principle: slop is a build error
 
 Everything here descends from one move — **turn taste into a gate.**
@@ -274,6 +289,7 @@ UIForge/
     ├── uiforge-source.mjs        # rank the catalog by fit to a signature (semantic × style × taste)
     ├── uiforge-harvest.mjs       # build the catalog: fetch registries → catalog.db
     ├── uiforge-catalog.mjs       # query the catalog — stats · search · show · near
+    ├── uiforge-corpus.mjs        # empirical validation — grade a labeled corpus, report separation
     ├── uiforge-score.mjs         # A–F grade wrapper (a review tool)
     ├── create-uiforge.mjs        # scaffold a wired project
     ├── tokens.template.css       # the token vocabulary

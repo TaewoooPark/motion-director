@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><title>precise</title><style>
+  :root{--bg:#fbfbfd;--fg:#0b0d12;--mut:#3a3f4a;--line:#e4e6ea;--accent:#2b64f5;--s2:16px;--s3:24px;--s4:40px;--s5:72px}
+  *{margin:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--fg);font-family:"Söhne",ui-sans-serif,sans-serif;line-height:1.6}
+  .wrap{max-width:1000px;margin:0 auto;padding:var(--s5) var(--s4)}
+  .kick{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:var(--s2)}
+  h1{font-size:52px;line-height:1.08;letter-spacing:-.02em;font-weight:680;max-width:18ch;margin-bottom:var(--s3)}
+  .lede{font-size:20px;color:var(--mut);max-width:56ch;margin-bottom:var(--s4)}
+  .btn{background:var(--fg);color:#fff;text-decoration:none;padding:12px var(--s3);border-radius:8px;font-size:15px;font-weight:600}
+  .grid{display:grid;grid-template-columns:1.4fr 1fr;gap:var(--s5);margin-top:var(--s5);border-top:1px solid var(--line);padding-top:var(--s4)}
+  .grid p{color:var(--mut);font-size:15px}.grid b{display:block;font-size:15px;color:var(--fg);margin-bottom:6px}
+</style></head><body>
+  <main class="wrap">
+    <p class="kick">Changelog / infra</p>
+    <h1>Deploys now stream logs the instant a build starts.</h1>
+    <p class="lede">No more staring at a spinner. The first line lands in under 400ms, and the trace is addressable by URL from the first byte.</p>
+    <a class="btn" href="#">Read the notes</a>
+    <div class="grid"><div><b>Streaming</b><p>Logs render as they arrive; the page is interactive before the build finishes.</p></div><div><b>Addressable</b><p>Every line has a stable anchor you can link a teammate to.</p></div></div>
+  </main>
+</body></html>

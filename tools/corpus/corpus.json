@@ -1,0 +1,8 @@
+[
+  { "ref": "../../docs/examples/good.html", "label": "designed", "note": "editorial (calibration)" },
+  { "ref": "fixtures/precise.html",         "label": "designed", "note": "swiss / tech (calibration)" },
+  { "ref": "fixtures/brutalist.html",       "label": "designed", "note": "brutalist (calibration)" },
+  { "ref": "../../docs/examples/slop.html", "label": "template", "note": "purple saas (calibration)" },
+  { "ref": "fixtures/saas.html",            "label": "template", "note": "generic saas (calibration)" },
+  { "ref": "fixtures/gradient.html",        "label": "template", "note": "gradient hero (calibration)" }
+]
