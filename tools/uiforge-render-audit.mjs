@@ -455,4 +455,4 @@ else if (!argv.length || argv.includes('-h') || argv.includes('--help')) {
   process.exit(rep.metrics.contrastFails ? 1 : 0)
 }
 
-export { analyze, deriveSignature, measure, renderSnapshot, parseColor, contrast, over, hsl }
+export { analyze, deriveSignature, measure, renderSnapshot, loadChromium, parseColor, contrast, over, hsl }

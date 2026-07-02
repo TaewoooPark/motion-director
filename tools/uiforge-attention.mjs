@@ -16,7 +16,7 @@
 
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
-import { renderSnapshot, measure, contrast, parseColor, over, hsl } from './uiforge-render-audit.mjs'
+import { renderSnapshot, loadChromium, measure, contrast, parseColor, over, hsl } from './uiforge-render-audit.mjs'
 
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x))
 const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d }
@@ -52,7 +52,8 @@ function attention(snap) {
     .sort((a, b) => b.saliency - a.saliency)
 
   const headline = scored.filter(r => r.isTxt).slice().sort((a, b) => b.n.fontSize - a.n.fontSize)[0]
-  const cta = scored.filter(r => r.acc && r.n.w * r.n.h < vpArea * 0.08).sort((a, b) => b.saliency - a.saliency)[0]
+  // a real CTA pops via a colored (non-neutral) background — not just accent-tinted text
+  const cta = scored.filter(r => { const bg = parseColor(r.n.bg); return bg.a > 0 && !isNeutralC(bg) && r.n.w * r.n.h < vpArea * 0.08 }).sort((a, b) => b.saliency - a.saliency)[0]
   const rankOf = r => scored.indexOf(r) + 1
 
   const notes = []; let status = 'ok'
@@ -65,7 +66,7 @@ function attention(snap) {
 
   return {
     viewport: V,
-    order: scored.slice(0, 6).map((r, i) => ({ rank: i + 1, sel: r.n.sel, saliency: r.saliency, kind: r.isTxt ? `text ${Math.round(r.n.fontSize)}px` : 'block', accent: !!r.acc })),
+    order: scored.slice(0, 6).map((r, i) => ({ rank: i + 1, sel: r.n.sel, saliency: r.saliency, kind: r.isTxt ? `text ${Math.round(r.n.fontSize)}px` : 'block', accent: !!r.acc, x: r.n.x, y: r.n.y, w: r.n.w, h: r.n.h })),
     verdict: { status, clear, headline: headline?.n.sel || null, cta: cta?.n.sel || null, notes },
   }
 }
@@ -98,6 +99,34 @@ function selfTest() {
   process.exit(ok ? 0 : 1)
 }
 
+/* ===================== annotated overlay (the art-director's punch list) ===================== */
+async function drawOverlay(target, viewport, order, outPath) {
+  const chromium = await loadChromium()
+  if (!chromium) { console.error('overlay needs Playwright'); return false }
+  const path = await import('node:path')
+  const url = /^https?:|^file:/.test(target) ? target : 'file://' + path.resolve(target)
+  const browser = await chromium.launch()
+  try {
+    const page = await browser.newPage({ viewport })
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 20000 }).catch(() => page.goto(url, { timeout: 20000 }))
+    await page.waitForTimeout(250)
+    await page.evaluate(order => {
+      const pal = ['#ff3b3b', '#ff8a00', '#f5c518', '#39d98a', '#3b82f6', '#a855f7']
+      for (const o of order) {
+        const c = pal[o.rank - 1] || '#888'
+        const box = document.createElement('div')
+        Object.assign(box.style, { position: 'fixed', left: o.x + 'px', top: o.y + 'px', width: o.w + 'px', height: o.h + 'px', border: '2px solid ' + c, borderRadius: '4px', zIndex: 2147483647, pointerEvents: 'none', boxSizing: 'border-box' })
+        const badge = document.createElement('div')
+        badge.textContent = '#' + o.rank
+        Object.assign(badge.style, { position: 'fixed', left: o.x + 'px', top: Math.max(0, o.y - 22) + 'px', background: c, color: '#000', font: '700 12px ui-sans-serif,system-ui,sans-serif', padding: '1px 6px', borderRadius: '4px', zIndex: 2147483647, pointerEvents: 'none' })
+        document.body.appendChild(box); document.body.appendChild(badge)
+      }
+    }, order)
+    await page.screenshot({ path: outPath })
+    return true
+  } finally { await browser.close() }
+}
+
 /* ============================= CLI ============================= */
 const isMain = import.meta.url === pathToFileURL(process.argv[1] || '').href
 if (isMain) {
@@ -107,8 +136,11 @@ if (isMain) {
     console.log(`
   uiforge-attention — predict the gaze order + check the hierarchy.
 
-  node uiforge-attention.mjs <url|file.html> [--expect "text/sel"] [--json] [--viewport WxH]
+  node uiforge-attention.mjs <url|file.html> [--expect "text/sel"] [--overlay out.png] [--json] [--viewport WxH]
   node uiforge-attention.mjs --self-test
+
+  --overlay draws the gaze order (#1…#6 badges) onto the rendered page — an
+  art-director's annotated punch list you can look at.
 
   Saliency proxy: size · contrast · position · accent · weight. Reports where the
   eye lands 1st→6th, whether there's ONE focal point, and if the headline/CTA lead.
@@ -119,11 +151,17 @@ if (isMain) {
     const valAt = n => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? argv[i + 1] : null }
     const [vw, vh] = (valAt('--viewport') || '1280x800').split('x').map(Number)
     const expect = valAt('--expect')
-    const valueIdx = new Set(); for (const nm of ['--viewport', '--expect']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
+    const overlayPath = valAt('--overlay')
+    const valueIdx = new Set(); for (const nm of ['--viewport', '--expect', '--overlay']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
     const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
 
     const snap = await renderSnapshot(target, { width: vw, height: vh })
     const rep = attention({ viewport: { w: vw, h: vh }, nodes: snap.nodes, samples: snap.samples })
+
+    if (overlayPath) {
+      const ok = await drawOverlay(target, { width: vw, height: vh }, rep.order, overlayPath)
+      if (ok && !argv.includes('--json')) console.log(`\n  \x1b[32m→ annotated gaze order written to ${overlayPath}\x1b[0m`)
+    }
 
     if (expect && rep.order.length) {
       const q = expect.toLowerCase()
