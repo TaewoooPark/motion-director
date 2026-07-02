@@ -1,0 +1,61 @@
+<!doctype html><html><head><meta charset="utf-8"><title>pricing — forged (precise)</title><style>
+  /* UIForge: Precise direction — one electric-blue accent, strong contrast, 8px grid,
+     the recommended plan emphasized (not three equal cards), concrete copy, static. */
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --fg:#12151b; --mut:#454b57; --line:#e3e6ea;
+    --accent:#1f5fff; --accent-tint:#eef3ff; --on-accent:#ffffff;
+    --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s5:48px; --s6:72px;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{margin:0;box-sizing:border-box;font-family:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif}
+  body{background:var(--bg);color:var(--fg);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:var(--s6) var(--s4)}
+  .kick{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:var(--s2)}
+  h1{font-size:48px;line-height:1.08;letter-spacing:-.02em;font-weight:700;max-width:18ch;margin-bottom:var(--s2)}
+  .lede{font-size:18px;color:var(--mut);max-width:56ch;margin-bottom:var(--s5)}
+  .row{display:flex;gap:var(--s3);align-items:stretch}
+  .plan{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:var(--s4)}
+  .plan.rec{flex:1.18;border:2px solid var(--accent);box-shadow:0 12px 40px rgba(31,95,255,.12);position:relative}
+  .tag{position:absolute;top:-11px;left:var(--s4);background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:6px}
+  .name{font-size:15px;font-weight:700;color:var(--fg)}
+  .price{font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:-.02em;margin:var(--s2) 0 4px}
+  .per{font-size:13px;color:var(--mut);font-family:var(--mono)}
+  .desc{color:var(--mut);font-size:13px;margin:var(--s2) 0 var(--s3);min-height:44px}
+  ul{list-style:none;margin:0 0 var(--s4);padding:0}
+  li{font-size:13px;color:var(--fg);padding:6px 0 6px 24px;position:relative}
+  li::before{content:"";position:absolute;left:2px;top:12px;width:10px;height:6px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
+  .cta{display:block;text-align:center;text-decoration:none;padding:12px;border-radius:8px;font-weight:600;font-size:15px}
+  .cta.solid{background:var(--accent);color:var(--on-accent);padding:16px;font-size:17px;font-weight:700}
+  .cta.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+  <main class="wrap">
+    <p class="kick">Pricing</p>
+    <h1>Priced per seat. No surprise invoices.</h1>
+    <p class="lede">Usage is metered but capped — you are billed for seats, never for a traffic spike. Change plans mid-cycle and we prorate to the day.</p>
+    <div class="row">
+      <div class="plan">
+        <div class="name">Solo</div>
+        <div class="price">$0</div><div class="per">forever</div>
+        <p class="desc">For one developer shipping side projects.</p>
+        <ul><li>1 seat · 2 projects</li><li>500 build-minutes / mo</li><li>Community support</li></ul>
+        <a class="cta ghost" href="#">Start free</a>
+      </div>
+      <div class="plan rec">
+        <span class="tag">RECOMMENDED</span>
+        <div class="name">Team</div>
+        <div class="price">$18</div><div class="per">/ seat / month</div>
+        <p class="desc">For teams that merge to main many times a day.</p>
+        <ul><li>Unlimited projects</li><li>10,000 build-minutes / mo</li><li>Merge queue + required checks</li><li>SSO &amp; audit log</li></ul>
+        <a class="cta solid" href="#">Start 14-day trial</a>
+      </div>
+      <div class="plan">
+        <div class="name">Enterprise</div>
+        <div class="price">Custom</div><div class="per">annual</div>
+        <p class="desc">For orgs with compliance and scale needs.</p>
+        <ul><li>Dedicated build fleet</li><li>SAML · SCIM · on-prem runners</li><li>99.9% SLA + named support</li></ul>
+        <a class="cta ghost" href="#">Talk to sales</a>
+      </div>
+    </div>
+  </main>
+</body></html>

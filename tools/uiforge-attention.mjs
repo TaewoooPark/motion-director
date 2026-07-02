@@ -52,8 +52,9 @@ function attention(snap) {
     .sort((a, b) => b.saliency - a.saliency)
 
   const headline = scored.filter(r => r.isTxt).slice().sort((a, b) => b.n.fontSize - a.n.fontSize)[0]
-  // a real CTA pops via a colored (non-neutral) background — not just accent-tinted text
-  const cta = scored.filter(r => { const bg = parseColor(r.n.bg); return bg.a > 0 && !isNeutralC(bg) && r.n.w * r.n.h < vpArea * 0.08 }).sort((a, b) => b.saliency - a.saliency)[0]
+  // a real CTA pops via a colored (non-neutral) bg AND is button-shaped (wide, not a
+  // tiny square/tag) — excludes "RECOMMENDED"-style label chips
+  const cta = scored.filter(r => { const bg = parseColor(r.n.bg); return bg.a > 0 && !isNeutralC(bg) && r.n.w > 120 && r.n.h > 28 && r.n.w > r.n.h && r.n.w * r.n.h < vpArea * 0.08 }).sort((a, b) => b.saliency - a.saliency)[0]
   const rankOf = r => scored.indexOf(r) + 1
 
   const notes = []; let status = 'ok'

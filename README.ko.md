@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <img src="./docs/proof-render-audit.png" alt="UIForge 딥 티어: LLM 기본값은 F(17/100) — WCAG 대비 5건 실패, accent 57% 표면, 동일 카드 3개; 확정된 방향은 A(94/100)" width="100%">
+  <img src="./docs/proof-render-audit.png" alt="같은 브리프를 실제로 돌린 결과 — 개발자 도구 pricing 섹션. 왼쪽: LLM 기본값, render audit F(46/100), WCAG 대비 실패 12, 동일 카드 3개, flat 위계. 오른쪽: UIForge로 forge, A(94/100), 대비 실패 0, 추천 플랜 강조, 헤드라인이 시선 리드." width="100%">
 </p>
-<p align="center"><sub><em><b>딥 티어</b>가 소스가 아니라 <b>렌더된 픽셀</b>을 채점한다 — 실제 WCAG 대비·accent 표면적·간격 리듬·레이아웃 tell. 왼쪽: LLM이 기본으로 내는 페이지, <b>F(17/100)</b> — 대비 5건 실패(gradient headline이 <code>transparent</code>라 문자 그대로 1:1), accent가 표면의 57%, 동일 카드 3개. 오른쪽: 확정된 방향, <b>A(94/100)</b>. 내장 <code>uiforge-render-audit</code>로 채점 — 재현: <code>node tools/uiforge-render-audit.mjs docs/examples/slop.html</code>. <a href="#증거-vibes가-아니라">자세히 ↓</a></em></sub></p>
+<p align="center"><sub><em>같은 브리프 — <b>개발자 도구 스타트업의 pricing 섹션</b> — 을 실제로 돌린 결과. 왼쪽: LLM이 기본으로 내는 것(purple 그라디언트 헤드라인·3-동일카드·저대비 카피) — <b>render audit F(46/100)</b>, WCAG 대비 실패 12, flat 위계. 오른쪽: 파이프라인으로 forge(방향 하나·토큰 우선·추천 플랜을 강조해 3-카드 tell 회피), 게이트 통과할 때까지 반복 — <b>A(94/100)</b>, 대비 실패 0, 헤드라인이 시선을 리드. 재현: <code>node tools/uiforge-render-audit.mjs docs/examples/pricing-forged.html</code>. <a href="#증거-vibes가-아니라">자세히 ↓</a></em></sub></p>
 
 ---
 

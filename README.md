@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-  <img src="./docs/proof-render-audit.png" alt="UIForge deep tier: the LLM default renders at F (17/100) with 5 WCAG contrast failures, 57% accent surface, three identical cards; a committed direction renders at A (94/100)" width="100%">
+  <img src="./docs/proof-render-audit.png" alt="Same brief run for real — a dev-tools pricing section. Left: the LLM default, render audit F (46/100), 12 WCAG contrast failures, three identical cards, flat hierarchy. Right: forged through UIForge, A (94/100), 0 contrast failures, the recommended plan emphasized, the headline leads." width="100%">
 </p>
-<p align="center"><sub><em>The <b>deep tier</b> grades the <b>rendered pixels</b>, not the source — real WCAG contrast, accent surface-area, spacing rhythm, layout tells. Left: the page an LLM emits by default, <b>F (17/100)</b> — 5 contrast failures (the gradient headline is literally 1:1), accent on 57% of the surface, three identical cards. Right: a committed direction, <b>A (94/100)</b>. Graded by the shipped <code>uiforge-render-audit</code> — reproduce: <code>node tools/uiforge-render-audit.mjs docs/examples/slop.html</code>. <a href="#proof-not-vibes">Details ↓</a></em></sub></p>
+<p align="center"><sub><em>Same brief — <b>a pricing section for a dev-tools startup</b> — run for real. Left: the default an LLM emits (purple gradient headline, three identical cards, muted low-contrast copy) — <b>render audit F (46/100)</b>, 12 WCAG contrast failures, flat hierarchy. Right: forged through the pipeline (one direction, tokens first, the recommended plan emphasized to break the three-card tell), gated until it passed — <b>A (94/100)</b>, 0 contrast failures, the headline leads the eye. Reproduce: <code>node tools/uiforge-render-audit.mjs docs/examples/pricing-forged.html</code>. <a href="#proof-not-vibes">Details ↓</a></em></sub></p>
 
 ---
 
