@@ -127,7 +127,7 @@ function CAPTURE() {
     .concat([...document.styleSheets].map(s => s.href)).filter(Boolean))].slice(0, 60)
   const fontFaces = []
   try { for (const ss of document.styleSheets) { try { for (const rule of ss.cssRules) if (rule.constructor.name === 'CSSFontFaceRule') fontFaces.push(rule.cssText) } catch {} } } catch {}
-  return { viewport: V, url: location.href, title: document.title, sheets, fontFaces: fontFaces.slice(0, 60), nodes }
+  return { viewport: V, url: location.href, title: document.title, sheets, fontFaces: fontFaces.slice(0, 60), nodes, canvasCount: document.querySelectorAll('canvas').length }
 }
 
 /* ------------------------- token dedup (design system) ------------------------- */
@@ -279,21 +279,56 @@ async function capture(target, viewport, opts = {}) {
   const browser = await chromium.launch()
   try {
     const page = await browser.newPage({ viewport })
+    // A stray toggle click can pop an alert()/confirm()/beforeunload — that would BLOCK the page
+    // and hang the exploration evaluate forever. Auto-dismiss so interaction probing stays safe.
+    page.on('dialog', d => d.dismiss().catch(() => {}))
     await page.emulateMedia({ reducedMotion: 'reduce' }).catch(() => {})
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => page.goto(url, { timeout: 30000 }).catch(() => {}))
     await page.waitForTimeout(700)
     // Scroll the whole page so IntersectionObserver reveals fire and lazy media loads —
     // otherwise below-fold sections are captured in their initial hidden state (opacity:0,
     // translated) and reconstruct blank. reduced-motion makes the reveals settle instantly.
-    await page.evaluate(async () => {
+    const prime = async () => { await page.evaluate(async () => {
       const step = Math.max(200, window.innerHeight * 0.8)
       for (let y = 0; y < document.body.scrollHeight; y += step) { window.scrollTo(0, y); await new Promise(r => setTimeout(r, 90)) }
       window.scrollTo(0, 0)
-    }).catch(() => {})
+    }).catch(() => {}) }
+    await prime()
     await page.waitForTimeout(400)
-    await page.evaluate(() => { for (const el of document.querySelectorAll('body *')) { const cs = getComputedStyle(el); if ((cs.position === 'fixed' || cs.position === 'sticky') && el.getBoundingClientRect().height > 140) el.remove() } document.documentElement.style.overflow = 'auto' }).catch(() => {})
+    // Explore disclosure toggles (dropdowns, mega-menus, popovers, <details>) BEFORE the
+    // sticky/fixed chrome is stripped — header nav menus live in exactly that chrome, so they
+    // must still be mountable here. Each opened panel's styles are captured now (portal-aware);
+    // results map back onto the post-removal snapshot by marker. Safe: clicks are restored,
+    // navigations reverted, scroll reset. 75s backstop in case a probe wedges the page.
+    const toggleFindings = await Promise.race([
+      exploreToggles(page),
+      new Promise(res => setTimeout(() => res({ findings: [], detected: 0, timedOut: true }), 75000)),
+    ])
+    // Close any stray modal/menu the probing left open, park the mouse, then strip sticky/fixed
+    // chrome. NOTE: we HIDE sticky chrome with display:none rather than el.remove() — removing a
+    // node the toggle probing just touched makes some frameworks (e.g. Stripe) thrash their
+    // MutationObservers and wedge the renderer, stalling the geometry evaluate indefinitely.
+    // display:none is captured-identically (CAPTURE skips it) and, for out-of-flow fixed/sticky
+    // boxes, leaves every other element's geometry untouched — same snapshot, no wedge.
+    await page.keyboard.press('Escape').catch(() => {})
+    await page.mouse.move(2, 2).catch(() => {})
+    await page.waitForTimeout(150)
+    const removeSticky = () => page.evaluate(() => { for (const el of document.querySelectorAll('body *')) { const cs = getComputedStyle(el); if ((cs.position === 'fixed' || cs.position === 'sticky') && el.getBoundingClientRect().height > 140) el.style.setProperty('display', 'none', 'important') } document.documentElement.style.overflow = 'auto' }).catch(() => {})
+    await removeSticky()
     await page.waitForTimeout(300)
-    var snap = await page.evaluate(`(${CAPTURE.toString()})()`)
+    // Geometry snapshot, stall-guarded: if a page is ever hostile enough to stall CAPTURE, one
+    // reload + retry (toggle data is already captured) yields a clean pass.
+    var snap
+    try {
+      snap = await Promise.race([
+        page.evaluate(`(${CAPTURE.toString()})()`),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE-timeout')), 30000)),
+      ])
+    } catch {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {})
+      await page.waitForTimeout(700); await prime(); await page.waitForTimeout(400); await removeSticky(); await page.waitForTimeout(300)
+      snap = await page.evaluate(`(${CAPTURE.toString()})()`)
+    }
     // server-side (no CORS): recover @font-face + used @keyframes + the :hover/:focus rules
     const usedAnim = new Set()
     for (const n of snap.nodes) { const a = (n.style || {}).an; if (a && a !== 'none') for (const nm of a.split(',')) usedAnim.add(nm.trim()) }
@@ -322,41 +357,233 @@ async function capture(target, viewport, opts = {}) {
       await page.waitForTimeout(250)
       const byId0 = new Map(snap.nodes.map(n => [n.i, n]))
       for (const m of await sampleJsMotion(page)) { const n = byId0.get(m.i); if (n) n.motion = { kf: m.kf, dur: m.dur } } }
-    // Interactive disclosure (dropdowns, menus, accordions): a toggle with aria-controls
-    // opens a panel that's hidden at rest. Click each toggle, record the panel's OPEN styles,
-    // then restore. Done LAST — the snapshot is already taken, so a misbehaving click is safe.
-    await matchToggles(page, snap)
+    // Fold the (pre-removal) toggle exploration onto the snapshot: attach open styles to a
+    // resting panel node when one survives, else keep a self-contained record in snap.toggles.
+    await resolveToggles(page, snap, toggleFindings.findings)
+    // Real hover-diff for interactive elements whose stylesheet-derived hover came back empty —
+    // recovers JS-driven hovers, and honestly counts the rest as 'hover:js-or-none'.
+    const hoverSample = await Promise.race([
+      hoverDiffSample(page, snap),
+      new Promise(res => setTimeout(() => res({ candidates: 0, sampled: 0, recovered: 0, jsOrNone: 0 }), 40000)),
+    ])
+    // Coverage manifest — FOUND vs CAPTURED vs SKIPPED(reason) for every dynamic dimension.
+    snap.coverage = buildCoverage({ snap, interRules: rec.interRules, usedAnim, opts, toggleFindings, hoverSample })
   } finally { await browser.close() }
   return snap
 }
 
-// Explore aria-controls / aria-expanded toggles: click, capture the target panel's visible
-// styles, restore. Attaches node.toggleTarget (on the toggle) + node.open (on the panel).
-async function matchToggles(page, snap) {
+// Explore disclosure toggles — dropdowns, mega-menus, popovers, accordions, <details>.
+// Broadened well past aria-controls: also [aria-haspopup] and [aria-expanded] WITHOUT a wired
+// target (nearest visible panel is used), plus <summary>. PORTAL-AWARE — if the aria-controls
+// target is missing OR doesn't change, it finds the element that BECAME visible (display:none /
+// height:0 → shown) or was NEWLY INSERTED anywhere in the DOM, and records THAT as the panel.
+// Both hover- and click-triggered menus are nudged open. Runs BEFORE sticky/fixed chrome is
+// stripped so header menus are present. Every interaction is restored; navigations reverted.
+// Returns { findings:[{k,sel,captured,kind,open,html,reason,…}], detected } — 'detected' is the
+// count of visible toggle-like elements found (may exceed the explored cap).
+async function exploreToggles(page) {
   try {
-    const found = await page.evaluate(async () => {
-      const all = [...document.querySelectorAll('body *')], idx = new Map(all.map((el, i) => [el, i]))
-      const pick = t => { const c = getComputedStyle(t); return { dsp: c.display, op: c.opacity, vis: c.visibility, h: c.height, mh: c.maxHeight, tf: c.transform, pe: c.pointerEvents } }
-      const toggles = all.filter(el => el.hasAttribute('aria-controls') && (el.getAttribute('aria-expanded') !== null || el.tagName === 'BUTTON'))
-      const out = []
-      for (const el of toggles.slice(0, 24)) {
-        const target = document.getElementById(el.getAttribute('aria-controls'))
-        if (!target) continue
-        const ei = idx.get(el), ti = idx.get(target); if (ei == null || ti == null) continue
-        const closed = pick(target)
-        try { el.click(); await new Promise(r => setTimeout(r, 260)) } catch { continue }
-        const open = pick(target)
-        try { if (el.getAttribute('aria-expanded') === 'true') { el.click(); await new Promise(r => setTimeout(r, 120)) } } catch {}
-        if (JSON.stringify(closed) !== JSON.stringify(open)) out.push({ toggle: ei, target: ti, open })
+    return await page.evaluate(async () => {
+      const startHref = location.href
+      const fire = (el, type, Ctor) => { try { el.dispatchEvent(new Ctor(type, { bubbles: true, cancelable: true, view: window })) } catch {} }
+      const PE = window.PointerEvent || MouseEvent
+      const openSeq = (el, allowClick) => {   // nudge hover- and click-opened menus alike
+        try { el.focus && el.focus() } catch {}
+        fire(el, 'pointerover', PE); fire(el, 'pointerenter', PE); fire(el, 'mouseover', MouseEvent); fire(el, 'mouseenter', MouseEvent)
+        if (allowClick) { fire(el, 'pointerdown', PE); fire(el, 'mousedown', MouseEvent); fire(el, 'pointerup', PE); fire(el, 'mouseup', MouseEvent); try { el.click() } catch {} }
       }
-      return out
+      const closeSeq = el => { fire(el, 'mouseout', MouseEvent); fire(el, 'mouseleave', MouseEvent); try { el.blur && el.blur() } catch {} }
+      const isVis = el => { if (!el || el.nodeType !== 1) return false
+        const c = getComputedStyle(el); if (c.display === 'none' || c.visibility === 'hidden' || +c.opacity === 0) return false
+        const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 }
+      const area = el => { const r = el.getBoundingClientRect(); return r.width * r.height }
+      const bag = el => { const c = getComputedStyle(el), r = el.getBoundingClientRect()
+        return { dsp: c.display, pos: c.position, op: c.opacity, vis: c.visibility, h: c.height, mh: c.maxHeight, tf: c.transform, z: c.zIndex, bc: c.backgroundColor, bi: c.backgroundImage, sh: c.boxShadow, pe: c.pointerEvents, ov: c.overflow, x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), ht: Math.round(r.height) } }
+      const desc = el => { const id = el.id ? '#' + el.id : ''
+        const cl = (typeof el.className === 'string' && el.className.trim()) ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''
+        return el.tagName.toLowerCase() + id + cl }
+      // ---- broadened candidate detection ----
+      const set = new Set()
+      for (const sel of ['[aria-controls]', '[aria-haspopup]', '[aria-expanded]', 'summary']) document.querySelectorAll(sel).forEach(e => set.add(e))
+      const filtered = [...set].filter(el => {
+        if (el.tagName === 'SUMMARY') return true
+        const hp = el.hasAttribute('aria-haspopup'), ex = el.hasAttribute('aria-expanded'), ac = el.hasAttribute('aria-controls')
+        if (!(hp || ex || ac)) return false
+        if (el.tagName === 'A') { const h = el.getAttribute('href') || ''; if (h && !h.startsWith('#') && !(hp || ex)) return false }  // don't click plain nav links
+        return true
+      })
+      const vis = filtered.filter(isVis), cands = vis.slice(0, 30)
+      const findings = []
+      let k = 0
+      const t0 = Date.now()
+      const navGuard = e => { try { const a = e.target && e.target.closest && e.target.closest('a[href]'); if (a) e.preventDefault() } catch {} }
+      document.addEventListener('click', navGuard, true)   // synthetic clicks must never navigate away
+      for (const el of cands) {
+        if (Date.now() - t0 > 22000) break   // in-page time budget — a slow/heavy menu never stalls the capture
+        const rec = { k, tag: el.tagName.toLowerCase(), sel: desc(el), controls: el.getAttribute('aria-controls') || null, haspopup: el.getAttribute('aria-haspopup') || null }
+        const allowClick = el.tagName !== 'A'   // hover-only for <a> so we never navigate
+        let target = rec.controls ? document.getElementById(rec.controls) : null
+        if (!target && el.tagName === 'SUMMARY') target = el.closest('details')
+        if (!target && !rec.controls) target = el.nextElementSibling && !isVis(el.nextElementSibling) ? el.nextElementSibling : null  // nearest following panel
+        const targetClosed = target ? bag(target) : null
+        const preEls = new Set(document.querySelectorAll('body *'))
+        const preSmall = []   // elements ~invisible at rest — the pool that can flip open (display:none / height:0)
+        for (const e of preEls) { const r = e.getBoundingClientRect(); if (r.width * r.height < 4) preSmall.push(e) }
+        el.setAttribute('data-uif-tog', String(k))
+        openSeq(el, allowClick)
+        await new Promise(r => setTimeout(r, 230))
+        const navigated = location.href !== startHref
+        let panel = null, kind = null
+        // 1) explicit target that actually changed
+        if (!navigated && target && isVis(target)) { const to = bag(target)
+          if (JSON.stringify(targetClosed) !== JSON.stringify(to)) { panel = target; kind = rec.controls ? 'aria-controls' : 'sibling' } }
+        // 2) portal / newly-visible detection (target missing or unchanged)
+        if (!panel && !navigated) {
+          let best = null, bestScore = 0
+          const consider = e => {
+            if (e === el || el.contains(e) || e.contains(el)) return
+            if (!isVis(e)) return
+            const a = area(e); if (a < 300) return
+            const role = (e.getAttribute('role') || '').toLowerCase()
+            const boost = (/menu|listbox|dialog|tooltip|region|group/.test(role) || e.hasAttribute('data-radix-popper-content-wrapper') || e.getAttribute('data-state') === 'open') ? 1e9 : 0
+            const s = a + boost; if (s > bestScore) { bestScore = s; best = e }
+          }
+          for (const e of document.querySelectorAll('body *')) if (!preEls.has(e)) consider(e)   // newly inserted (portal)
+          for (const e of preSmall) consider(e)                                                  // flipped display:none/height:0 → visible
+          if (best) { panel = best; kind = preEls.has(best) ? 'newly-visible' : 'portal' }
+        }
+        if (panel) {
+          rec.captured = true; rec.kind = kind; rec.open = bag(panel); rec.panelSel = desc(panel)
+          rec.text = (panel.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 200)
+          try { rec.html = panel.outerHTML.replace(/\s*data-uif-(?:tog|panel)="\d+"/g, '').slice(0, 6000) } catch {}
+          try { panel.setAttribute('data-uif-panel', String(k)) } catch {}
+        } else rec.reason = navigated ? 'nav-away' : (target ? 'no-visual-change' : 'no-target')
+        // ---- restore (safe) ----
+        try {
+          if (navigated) { history.back(); await new Promise(r => setTimeout(r, 260)) }
+          else {
+            closeSeq(el)
+            if (el.tagName === 'SUMMARY') { const d = el.closest('details'); if (d) d.open = false }
+            if (allowClick && el.getAttribute('aria-expanded') === 'true') { try { el.click() } catch {} }
+            try { document.activeElement && document.activeElement.blur && document.activeElement.blur() } catch {}
+            try { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true })) } catch {}
+            await new Promise(r => setTimeout(r, 60))
+          }
+        } catch {}
+        findings.push(rec); k++
+      }
+      document.removeEventListener('click', navGuard, true)
+      try { window.scrollTo(0, 0) } catch {}   // geometry snapshot must see the page at top
+      return { findings, detected: vis.length }
     })
-    const byId = new Map(snap.nodes.map(n => [n.i, n]))
-    for (const t of found) {
-      const tog = byId.get(t.toggle), tgt = byId.get(t.target)
-      if (tog && tgt) { tog.toggleTarget = t.target; tgt.open = t.open }
-    }
+  } catch { return { findings: [], detected: 0 } }
+}
+
+// Fold exploreToggles() findings onto the post-removal snapshot. Toggle & panel elements were
+// tagged with data-uif-* markers; resolve those to current body-order indices (stable now the
+// DOM is settled) and map to nodes. A resting panel node rarely survives (menus are hidden at
+// rest, so CAPTURE skipped them) — when one does, open styles land on it and toggleTarget on the
+// toggle; otherwise the self-contained record (open styles + capped html) lives in snap.toggles.
+async function resolveToggles(page, snap, findings) {
+  snap.toggles = []
+  if (!findings || !findings.length) return
+  let marks = { tog: {}, panel: {} }
+  try {
+    marks = await page.evaluate(() => {
+      const all = [...document.querySelectorAll('body *')], idx = new Map(all.map((el, i) => [el, i])), tog = {}, panel = {}
+      document.querySelectorAll('[data-uif-tog]').forEach(el => { tog[el.getAttribute('data-uif-tog')] = idx.get(el) })
+      document.querySelectorAll('[data-uif-panel]').forEach(el => { panel[el.getAttribute('data-uif-panel')] = idx.get(el) })
+      return { tog, panel }
+    })
   } catch {}
+  const byId = new Map(snap.nodes.map(n => [n.i, n]))
+  for (const f of findings) {
+    if (!f.captured) continue
+    const ti = marks.tog[String(f.k)], pi = marks.panel[String(f.k)]
+    const togNode = ti != null ? byId.get(ti) : null
+    const panNode = pi != null ? byId.get(pi) : null
+    if (togNode && panNode) { togNode.toggleTarget = panNode.i; panNode.open = f.open }
+    else if (togNode) togNode.opensPanel = true
+    snap.toggles.push({ toggle: f.sel, panel: f.panelSel, kind: f.kind, text: f.text, open: f.open, html: f.html,
+      toggleIndex: togNode ? togNode.i : undefined, panelIndex: panNode ? panNode.i : undefined })
+  }
+}
+
+// Real hover-diff for interactive elements whose stylesheet-derived :hover came back empty
+// (cross-origin CSS, or JS-driven). Physically hover up to ~16 of them and diff the computed
+// visual props; recovered hovers are attached (hoverSrc:'js'), the rest counted honestly as
+// 'hover:js-or-none' in coverage. Safe — runs after the snapshot; mouse is parked afterward.
+async function hoverDiffSample(page, snap) {
+  const out = { candidates: 0, sampled: 0, recovered: 0, jsOrNone: 0 }
+  try {
+    const interactive = new Set(['a', 'button', 'summary', 'input', 'select', 'label', 'textarea'])
+    const cand = (snap.nodes || []).filter(n => !n.hover && (interactive.has(n.tag) || n.role === 'button') && n.w > 8 && n.h > 8 && n.y < (snap.viewport.h * 2))
+    out.candidates = cand.length
+    const pick = cand.slice(0, 16)
+    if (!pick.length) return out
+    await page.evaluate(ids => { const all = [...document.querySelectorAll('body *')]; for (const i of ids) { const el = all[i]; if (el) el.setAttribute('data-uif-hov', String(i)) } }, pick.map(n => n.i))
+    const handles = await page.$$('[data-uif-hov]')
+    const byId = new Map(snap.nodes.map(n => [n.i, n]))
+    const read = el => { const c = getComputedStyle(el); return { color: c.color, 'background-color': c.backgroundColor, 'background-image': c.backgroundImage, 'box-shadow': c.boxShadow, transform: c.transform, opacity: c.opacity, 'text-decoration-line': c.textDecorationLine, 'border-color': c.borderTopColor, filter: c.filter } }
+    for (const h of handles) {
+      try {
+        const i = +(await h.evaluate(el => el.getAttribute('data-uif-hov')))
+        const n = byId.get(i); if (!n) continue
+        const before = await h.evaluate(read)
+        await h.hover({ timeout: 800 })
+        await page.waitForTimeout(70)
+        const after = await h.evaluate(read)
+        out.sampled++
+        const decl = []
+        for (const key in before) { const a = after[key]
+          if (a && a !== before[key] && a !== 'none' && !/^rgba?\(0, 0, 0, 0\)/.test(a)) decl.push(`${key}:${a}`) }
+        if (decl.length) { n.hover = (n.hover || '') + decl.join(';') + ';'; n.hoverSrc = 'js'; out.recovered++ } else out.jsOrNone++
+      } catch { out.jsOrNone++ }
+    }
+    await page.mouse.move(2, 2).catch(() => {})
+    await page.evaluate(() => document.querySelectorAll('[data-uif-hov]').forEach(el => el.removeAttribute('data-uif-hov'))).catch(() => {})
+    for (const h of handles) { try { await h.dispose() } catch {} }
+  } catch {}
+  return out
+}
+
+// Assemble the coverage manifest: FOUND vs CAPTURED vs SKIPPED(reason) for each dynamic
+// dimension. Honesty first — every zero is paired with a reason (never a bare, silent 0).
+function buildCoverage({ snap, interRules, usedAnim, opts, toggleFindings, hoverSample }) {
+  const nodes = snap.nodes || []
+  // canvases — found = #<canvas>; recorded only with --record-canvas
+  const cFound = snap.canvasCount || 0, cRec = (snap.canvasVideos || []).length
+  let cNote
+  if (cFound === 0) cNote = 'none in DOM'
+  else if (!opts.recordCanvas) cNote = 'flag off (--record-canvas)'
+  else if (cRec === 0) cNote = 'untappable — cross-origin or <40px'
+  else if (cRec < cFound) cNote = `${cFound - cRec} not recorded (too small / untappable)`
+  // animations — css @keyframes actually used + recovered; jsAnim only with --sample-motion
+  const cssKf = (snap.keyframes || []).length
+  const jsAnim = opts.sampleMotion ? nodes.filter(n => n.motion).length : 0
+  let aNote = ''
+  if (cssKf === 0 && (!usedAnim || usedAnim.size === 0)) aNote = 'no CSS animations in use'
+  else if (usedAnim && usedAnim.size > cssKf) aNote = `${usedAnim.size - cssKf} anim ref unreachable (cross-origin keyframes)`
+  if (!opts.sampleMotion) aNote = (aNote ? aNote + ' · ' : '') + 'jsAnim: flag off (--sample-motion)'
+  else if (jsAnim === 0) aNote = (aNote ? aNote + ' · ' : '') + 'jsAnim: sampled, none moved'
+  // interaction — stylesheet hover/focus rules + how many elements they matched + js recovery
+  const ir = interRules || []
+  const hoverRulesFound = ir.filter(r => r.pseudo === 'hover').length
+  const focusRulesFound = ir.filter(r => r.pseudo === 'focus').length
+  const elementsMatched = nodes.filter(n => n.hover || n.focus || n.active).length
+  const hs = hoverSample || {}
+  // toggles — found vs captured vs skipped(reason)
+  const tf = (toggleFindings && toggleFindings.findings) || []
+  const detected = (toggleFindings && toggleFindings.detected) || tf.length
+  const captured = tf.filter(f => f.captured).length
+  const skipped = tf.filter(f => !f.captured).map(f => ({ reason: f.reason || 'unknown', sel: f.sel }))
+  return {
+    canvases: { found: cFound, recorded: cRec, note: cNote },
+    fonts: { faceRulesFound: (snap.fontFaces || []).length },
+    animations: { cssKeyframesUsed: cssKf, jsAnimSampled: jsAnim, note: aNote || undefined },
+    interaction: { hoverRulesFound, elementsMatched, focusRulesFound, hoverJsRecovered: hs.recovered || 0, hoverEmptyInteractive: hs.candidates || 0, hoverJsOrNone: hs.jsOrNone || 0 },
+    toggles: { found: detected, explored: tf.length, captured, skipped, note: detected > tf.length ? `explored ${tf.length}/${detected} (cap)` : undefined },
+  }
 }
 
 /* --------------------------------- CLI --------------------------------- */
@@ -394,7 +621,7 @@ if (isMain) {
     writeFileSync(file, Buffer.from(v.b64, 'base64'))
     const node = byId.get(v.i); if (node) node.video = file.split('/').pop()
   }
-  const out = { source: target, capturedAt: null, viewport: snap.viewport, title: snap.title, sheets: snap.sheets || [], fontFaces: snap.fontFaces || [], keyframes: snap.keyframes || [], tokens, nodes: snap.nodes }
+  const out = { source: target, capturedAt: null, viewport: snap.viewport, title: snap.title, sheets: snap.sheets || [], fontFaces: snap.fontFaces || [], keyframes: snap.keyframes || [], tokens, coverage: snap.coverage, toggles: snap.toggles || [], nodes: snap.nodes }
 
   if (argv.includes('--json')) { console.log(JSON.stringify(out, null, 2)); process.exit(0) }
   writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n')
@@ -408,6 +635,32 @@ if (isMain) {
   console.log(`    ${C}spacing${X}    ${tokens.spacing.slice(0, 12).map(s => s.v).join(' ')}`)
   console.log(`    ${C}radii${X}      ${tokens.radii.map(r => r.v).join(' ') || '—'}`)
   console.log(`    ${C}shadows${X}    ${tokens.shadows.length} distinct · ${C}gradients${X} ${tokens.gradients.length}`)
+  // coverage manifest — never a bare 0; always found-vs-captured and WHY
+  const cov = out.coverage || {}
+  console.log(`\n  ${B}coverage${X} ${D}(found → captured · why)${X}`)
+  { const c = cov.canvases || {}
+    console.log(`    ${C}canvases${X}   ${c.found || 0} found → ${c.recorded || 0} recorded${c.note ? `   ${D}(${c.note})${X}` : ''}`) }
+  { const f = cov.fonts || {}
+    console.log(`    ${C}fonts${X}      ${f.faceRulesFound || 0} @font-face recovered${!f.faceRulesFound ? `   ${D}(none — system fallback)${X}` : ''}`) }
+  { const a = cov.animations || {}
+    console.log(`    ${C}animation${X}  ${a.cssKeyframesUsed || 0} css keyframes · ${a.jsAnimSampled || 0} js-motion${a.note ? `   ${D}(${a.note})${X}` : ''}`) }
+  { const it = cov.interaction || {}
+    let s = `hover ${it.hoverRulesFound || 0} · focus ${it.focusRulesFound || 0} rules → ${it.elementsMatched || 0} el matched`
+    if (it.hoverJsRecovered) s += ` · +${it.hoverJsRecovered} js-hover`
+    if (it.hoverEmptyInteractive) s += ` · ${it.hoverJsOrNone || 0}/${it.hoverEmptyInteractive} js-or-none`
+    if (!it.hoverRulesFound && !it.focusRulesFound && !it.hoverJsRecovered) s += `   ${D}(no stylesheet :hover/:focus — cross-origin or JS-driven)${X}`
+    console.log(`    ${C}interact${X}   ${s}`) }
+  { const t = cov.toggles || {}
+    let s
+    if (!t.found) s = `0 found   ${D}(no aria-controls / aria-haspopup / aria-expanded / <summary> in DOM)${X}`
+    else {
+      s = `${t.found} found → ${t.captured || 0} captured`
+      const sk = t.skipped || []
+      if (sk.length) { const g = {}; for (const x of sk) g[x.reason] = (g[x.reason] || 0) + 1
+        s += ` · ${sk.length} skipped ${D}(${Object.entries(g).map(([r, n]) => `${r}×${n}`).join(', ')})${X}` }
+      if (t.note) s += ` ${D}· ${t.note}${X}`
+    }
+    console.log(`    ${C}toggles${X}    ${s}`) }
   console.log(`\n  ${G}→ ${outPath}${X}  ${D}(${(JSON.stringify(out).length / 1024).toFixed(0)} KB)${X}\n`)
 }
 
