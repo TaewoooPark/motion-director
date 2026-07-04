@@ -1,8 +1,8 @@
 <h1 align="center">🔨 UIForge</h1>
 
 <p align="center">
-  <strong>어떤 웹사이트든 디자인과 <em>모션</em>과 <em>인터랙션</em>까지 깔끔하고 편집 가능한 React + Tailwind로 복제한다. 콘텐츠는 당신 것으로.</strong><br>
-  <em>사이트 주소를 알려주면 된다. UIForge는 그 사이트의 디자인 전체를 캡처한다. 모든 색, 그라디언트, 그림자, 박스와 함께 진짜 웹폰트, <b>CSS 애니메이션, hover 상태, 드롭다운</b>을 담아내고, <b>canvas나 WebGL 히어로는 영상으로 녹화</b>하며, <b>JS 모션까지 샘플링</b>한다. 그리고 그 전부를 충실한 재구성으로 replay한 뒤 편집 가능한 Vite + React + Tailwind 프로젝트를 건네준다. 콘텐츠는 <b>당신 것</b>으로 채워진 채로.</em>
+  <strong>어떤 웹사이트든 디자인과 <em>모션</em>과 <em>인터랙션</em>까지 두 가지로 복제한다. 픽셀까지 충실한 <em>동결본</em>과, 깔끔하게 컴포넌트화된 React + Tailwind <em>재건본</em>.</strong><br>
+  <em>사이트 주소를 알려주면 된다. UIForge는 그 사이트를 <b>동결</b>해 자립형·픽셀 충실 복제본을 만들고(원본 CSS·폰트·에셋을 그대로 지킨 오프라인 오라클), 동시에 편집 가능한 Vite + React + Tailwind 프로젝트로 <b>재건</b>한다. 섹션과 반복 블록은 진짜 컴포넌트로, 스타일은 Tailwind 클래스로, 콘텐츠는 외부화된 채로, 그리고 동결본에 대고 검증된 채로. 웹폰트·CSS 애니메이션·hover·드롭다운을 담고, canvas/WebGL 히어로는 영상으로 녹화하며, JS 모션을 샘플링하고, Cloudflare 뒤의 사이트까지 도달한다. 그다음 <b>당신의</b> 콘텐츠로 채운다.</em>
 </p>
 
 <p align="center">
@@ -27,10 +27,46 @@
 </p>
 <p align="center"><sub><em><b>linear.app을 캡처만으로 재현한 결과다.</b> 손으로 작성한 부분은 없고 두 화면 모두 같은 스크롤 위치다. <code>capture → reconstruct</code>가 모든 요소의 정확한 스타일, 기하 정보, 텍스트, SVG를 replay하고, 사이트 자신의 <code>@font-face</code>를 다시 선언해 헤드라인이 대체 폰트가 아니라 <b>Linear의 진짜 Inter Variable</b>로 렌더링되게 한다. 그다음 당신의 콘텐츠를 채워 넣고 편집 가능한 React + Tailwind 프로젝트로 내보낸다.</em></sub></p>
 
+---
+
+## 하나의 캡처에서 두 가지 산출물
+
+오래된 딜레마 — *충실한 복제는 원본 CSS를 지키고, 깨끗한 코드는 그걸 버린다* — 를 **둘 다 만들고 하나로 다른 하나를 검증**해서 푼다.
+
+| | 무엇인가 | 용도 |
+|---|---|---|
+| **동결본** (`uiforge-freeze`) | 자립형·**픽셀 충실** 복제본. 사이트의 진짜 CSS·폰트·에셋을 지키고, 결정성을 위해 스크립트만 제거 | 정확한 오프라인 복제본, 그리고 재건본을 재는 **오라클** |
+| **재건본** (`uiforge-export`) | **깔끔하게 컴포넌트화된** Vite + React + Tailwind 프로젝트. 섹션과 반복 블록은 컴포넌트로, 스타일은 Tailwind 클래스로, 콘텐츠는 외부화 | 디자인 위에 쌓고, 편집하고, 당신 콘텐츠로 배포 |
+
+동결본은 라이브와 동일하게 렌더되고(그게 곧 그 사이트의 CSS다), 재건본은 그 동결본에 대고 오프라인·결정적으로 diff되어, 컴포넌트화가 충실도를 조용히 깨뜨리지 못한다.
+
+## 다섯 가지로 카피
+
+실제 사이트 다섯 개를 캡처만으로 동결했다. 원본(좌) vs 동결본(우):
+
 <p align="center">
-  <img src="./docs/clone-github.png?v=3310" alt="github.com을 캡처만으로 재현한 UIForge 클론. 원본과 재구성을 나란히 놓았고 내비게이션, 헤드라인, 버튼이 그대로다." width="100%">
+  <img src="./docs/copy-stripe.png?v=3370" alt="stripe.com 원본 vs 동결본, 거의 픽셀 동일" width="100%">
 </p>
-<p align="center"><sub><em><b>github.com</b> — 같은 내비게이션, 헤드라인, 버튼을 GitHub 자신의 서체로.</em></sub></p>
+<p align="center"><sub><em><b>stripe.com</b> — 그라디언트 히어로, 로고 줄, 쿠키 배너까지. 동결본은 진짜 CSS를 지켜 그대로 렌더된다(손실 재구성은 이 페이지를 40% 높이로 붕괴시켰다).</em></sub></p>
+
+<table>
+<tr>
+<td width="50%" align="center"><img src="./docs/copy-anthropic.png?v=3370" alt="anthropic.com 원본 vs 동결본" width="100%"></td>
+<td width="50%" align="center"><img src="./docs/copy-vercel.png?v=3370" alt="vercel.com 원본 vs 동결본, canvas 삼각형 포함" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>anthropic.com</b> — 헤드라인·내비·본문·오렌지 밴드까지 충실하게.</sub></td>
+<td align="center"><sub><b>vercel.com</b> — <b>canvas 삼각형</b> 히어로까지 렌더된다(동결본은 라이브 페이지를 지켜서 canvas가 공짜로 딸려온다).</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="./docs/copy-linear.png?v=3370" alt="linear.app 원본 vs 동결본" width="100%"></td>
+<td align="center"><img src="./docs/copy-openai.png?v=3370" alt="openai.com을 --headed로 Cloudflare 너머에서 도달해 진짜 CSS로 동결" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>linear.app</b> — 어두운 히어로를 자신의 Inter Variable로.</sub></td>
+<td align="center"><sub><b>openai.com</b> — <code>--headed</code>로 <b>Cloudflare 너머</b>에 도달. openai는 JS로 개인화된 SPA다. 동결본은 진짜 CSS를 지키지만, JS로 마운트되는 히어로는 다시 불러온 화면과 다른 정적 슬라이드를 보여준다. 충실도 결함이 아니라 정직한 SPA 한계다.</sub></td>
+</tr>
+</table>
 
 ---
 

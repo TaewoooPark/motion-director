@@ -1,8 +1,8 @@
 <h1 align="center">🔨 UIForge</h1>
 
 <p align="center">
-  <strong>Clone any website — design, <em>motion</em>, and <em>interaction</em> — into clean, editable React + Tailwind, with your content.</strong><br>
-  <em>Point it at a site. UIForge captures its full design (every color, gradient, shadow, font, and box), its real webfonts, its <b>CSS animations, hover states, and dropdowns</b>, records its <b>canvas/WebGL heroes to video</b>, and even <b>samples its JS motion</b> — then replays all of it into a faithful reconstruction and hands you an editable Vite + React + Tailwind project, populated with <b>your</b> content.</em>
+  <strong>Clone any website — design, <em>motion</em>, and <em>interaction</em> — two ways: a pixel-faithful <em>freeze</em> and a clean, componentized React + Tailwind <em>rebuild</em>.</strong><br>
+  <em>Point it at a site. UIForge <b>freezes</b> it into a self-contained, pixel-faithful replica (its real CSS, fonts, and assets kept) — the offline oracle — and <b>rebuilds</b> it into an editable Vite + React + Tailwind project: sections and repeated blocks as real components, styles as Tailwind classes, content externalized, verified against the freeze. It captures the webfonts, CSS animations, hover states, and dropdowns, records canvas/WebGL heroes to video, samples JS motion, and reaches sites behind Cloudflare — then populates it with <b>your</b> content.</em>
 </p>
 
 <p align="center">
@@ -27,10 +27,46 @@
 </p>
 <p align="center"><sub><em><b>linear.app, reproduced from the capture alone</b> — no hand-authoring, both panels at the same scroll. <code>capture → reconstruct</code> replays every element's exact styles, geometry, text, and SVGs, and re-declares the site's own <code>@font-face</code> so the headline renders in <b>Linear's real Inter Variable</b> — not a fallback. Then swap in your content and export to an editable React + Tailwind project.</em></sub></p>
 
+---
+
+## Two outputs from one capture
+
+The old tension — *a faithful copy keeps the original CSS; clean code throws it away* — is resolved by producing **both**, and using one to verify the other:
+
+| | what it is | for |
+|---|---|---|
+| **Freeze** (`uiforge-freeze`) | a self-contained, **pixel-faithful** replica — the site's real CSS, fonts, and assets kept, scripts stripped for determinism | an exact, offline copy — and the **oracle** the rebuild is measured against |
+| **Rebuild** (`uiforge-export`) | a **clean, componentized** Vite + React + Tailwind project — sections & repeated blocks as components, styles as Tailwind classes, content externalized | building on the design, editing, shipping with **your** content |
+
+The freeze renders identical to the live site (it *is* its CSS); the rebuild is diffed against that freeze — offline and deterministic — so componentization can't silently break fidelity.
+
+## Copied, five ways
+
+Five real sites, frozen from the capture alone — original (left) vs freeze (right):
+
 <p align="center">
-  <img src="./docs/clone-github.png?v=3310" alt="UIForge clone of github.com, original vs reconstruction side by side — same nav, same headline, same buttons." width="100%">
+  <img src="./docs/copy-stripe.png?v=3370" alt="stripe.com original vs freeze, near pixel-identical" width="100%">
 </p>
-<p align="center"><sub><em><b>github.com</b> — same nav, headline, and buttons, in GitHub's own type.</em></sub></p>
+<p align="center"><sub><em><b>stripe.com</b> — the gradient hero, the logo row, the cookie banner: the freeze keeps the real CSS, so it renders identically (the lossy reconstruction collapsed this page to 40% height).</em></sub></p>
+
+<table>
+<tr>
+<td width="50%" align="center"><img src="./docs/copy-anthropic.png?v=3370" alt="anthropic.com original vs freeze" width="100%"></td>
+<td width="50%" align="center"><img src="./docs/copy-vercel.png?v=3370" alt="vercel.com original vs freeze, including the canvas triangle" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>anthropic.com</b> — headline, nav, body, and the orange band, all faithful.</sub></td>
+<td align="center"><sub><b>vercel.com</b> — even the <b>canvas triangle</b> hero renders (the freeze keeps the live page, so canvas comes free).</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="./docs/copy-linear.png?v=3370" alt="linear.app original vs freeze" width="100%"></td>
+<td align="center"><img src="./docs/copy-openai.png?v=3370" alt="openai.com reached past Cloudflare with --headed, frozen with its real CSS" width="100%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>linear.app</b> — the dark hero in its own Inter Variable.</sub></td>
+<td align="center"><sub><b>openai.com</b> — reached <b>past Cloudflare</b> with <code>--headed</code>. openai is a JS-personalized SPA: the freeze keeps its real CSS, but its JS-mounted hero shows a different static slide than a re-fetch — the honest SPA limit, not a fidelity gap.</sub></td>
+</tr>
+</table>
 
 ---
 
@@ -95,24 +131,24 @@ whose content is yours.
 ## The pipeline
 
 ```
-reference URL
-   │  uiforge-capture       render it, extract EVERY element's exact styles, geometry,
-   ▼                        text, SVGs + real @font-face, @keyframes, :hover/:focus rules,
-   │                        dropdown open-states, and (opt-in) canvas video + JS motion
-capture.json  ──────────────────────────────────────────────────────────────
+reference URL  (--headed to clear a Cloudflare / bot wall)
+   │
+   ├─ uiforge-freeze ──────────► freeze.html   the PIXEL-FAITHFUL replica: real CSS/fonts/
+   │                                            assets kept, scripts stripped — the ORACLE
+   │
+   ▼  uiforge-capture       extract EVERY element's exact styles, geometry, text, SVGs +
+capture.json                real @font-face, @keyframes, :hover/:focus, dropdown open-states,
+   │                        (opt-in) canvas video, JS motion, and a --responsive mobile pass
    │  uiforge-theme         infer roles (bg/fg/accent/…) → a Tailwind v4 @theme
+   │  uiforge-segment       find semantic sections + repeated components (structural hashing)
+   │  uiforge-tailwindify   map every computed style → Tailwind utility classes
    ▼
-theme.css / theme.json
-   │  uiforge-reconstruct   replay it all into a faithful, LIVE standalone page
-   ▼                        (webfont, motion, hover, working menus)
-index.html (a high-fidelity baseline, no hand-authoring)
-   │  uiforge-diff          render both, pixel-compare, report the worst regions
-   ▼  ───── loop: fix those regions until similarity ≥ 90% ─────
-   │  content swap          replace the reference's copy with YOUR content,
-   ▼                        keeping the components, tokens, and layout
-   │  uiforge-export        → a Vite + React + Tailwind v4 project you can edit
-   ▼                        (fonts, keyframes, hover CSS, a useEffect toggle runtime)
-clone/  (npm install && npm run dev)
+   │  uiforge-export        → a CLEAN, componentized Vite + React + Tailwind project:
+   ▼                          components/*.tsx, content.ts, hover CSS, motion, toggle runtime
+   │  uiforge-assets        --assets downloads images/fonts → /public (self-contained)
+   │  uiforge-diff          score the rebuild against freeze.html — PER SECTION (SSIM +
+   ▼                        structure + element-presence), offline & deterministic
+clone/  (npm install && npm run dev)  ·  content swap: your copy, same components & tokens
 ```
 
 ### What comes across
@@ -130,6 +166,11 @@ clone/  (npm install && npm run dev)
 | **Scroll-reveal** states & lazy media | ✓ | full scroll-through before snapshot |
 | **Canvas / WebGL** heroes | ✓ *(opt-in)* | `captureStream()` → a looping `<video>` |
 | **JS motion** (Framer / GSAP) | ~ *(opt-in)* | sampled over time → approximating `@keyframes` |
+| A **pixel-faithful** offline replica | ✓ | `uiforge-freeze` keeps the real CSS/fonts/assets |
+| A **clean componentized** rebuild | ✓ | segment + tailwindify → `components/*.tsx`, Tailwind classes |
+| **Self-contained** assets (offline) | ✓ *(opt-in)* | `export --assets` downloads img/font/bg → `/public` |
+| **Responsive** (mobile) variants | ✓ *(opt-in)* | `--responsive` mobile pass → `max-sm:` classes |
+| Sites behind **Cloudflare / bot walls** | ~ *(opt-in)* | `--headed` real-browser bypass (best-effort) |
 
 Every value in the reconstruction is produced by the tools, not guessed — the
 signature by `uiforge-theme`, the layout and styles by `uiforge-reconstruct`, the
@@ -182,25 +223,34 @@ external-dependency Node; rendering uses Playwright.
 ### Clone pipeline
 
 ```bash
-node tools/uiforge-capture.mjs   <url│file> [--out capture.json] [--viewport WxH] [--record-canvas] [--sample-motion]
-      # render + extract every element's exact computed styles, geometry, text, SVGs,
-      # assets, hierarchy + a deduped token set (palette, type, spacing, radii, shadows, fonts).
-      # Recovers real @font-face, @keyframes, and :hover/:focus rules server-side (past CORS),
-      # explores dropdown open-states, and scrolls the page to fire reveals + load lazy media.
-      #   --record-canvas   record each <canvas> to a looping .webm (canvas/WebGL heroes)
-      #   --sample-motion   sample JS motion (Framer/GSAP) → approximating @keyframes
+node tools/uiforge-freeze.mjs    <url│file> [--out freeze.html] [--viewport WxH] [--headed]
+      # the PIXEL-FAITHFUL oracle: inline the real stylesheets (fetched server-side, url()s
+      # absolutized), strip scripts, keep the settled DOM. Renders identical to the live site.
+
+node tools/uiforge-capture.mjs   <url│file> [--out capture.json] [--record-canvas] [--sample-motion] [--responsive] [--headed]
+      # extract every element's exact computed styles, geometry, text, SVGs + a deduped token set.
+      # Recovers real @font-face, @keyframes, :hover/:focus rules server-side (past CORS), explores
+      # dropdown open-states, scrolls to fire reveals; emits a coverage manifest (found→captured→why).
+      #   --record-canvas  record each <canvas> to a looping .webm     --sample-motion  JS motion → @keyframes
+      #   --responsive     mobile pass → max-sm: variants + stability   --headed         clear a Cloudflare/bot wall
 
 node tools/uiforge-theme.mjs     capture.json [--out-css theme.css] [--out-json theme.json]
       # infer semantic roles by usage → a Tailwind v4 @theme (bg/fg/muted/surface/border/accent)
 
-node tools/uiforge-reconstruct.mjs capture.json [--out index.html] [--mode flow│absolute]
-      # deterministically replay the capture into a faithful standalone page
+node tools/uiforge-segment.mjs   capture.json [--out segment.json]
+      # detect semantic sections + repeated components (structural hashing) — the componentization map
+node tools/uiforge-tailwindify.mjs capture.json theme.json [--sample N]
+      # map computed styles → Tailwind utility classes against the @theme (arbitrary [values] otherwise)
 
-node tools/uiforge-diff.mjs      <ref> <out> [--viewport WxH] [--heatmap diff.png]
-      # render both, compare in a canvas: similarity % + the grid regions that differ most
+node tools/uiforge-export.mjs    capture.json --out-dir ./clone [--assets] [--flat]
+      # DEFAULT: a componentized React + Tailwind project (components/*.tsx, content.ts, Tailwind classes)
+      #   --assets  download images/fonts → /public, rewrite refs (self-contained)   --flat  the old single-file dump
 
-node tools/uiforge-export.mjs    capture.json --out-dir ./clone [--theme theme.css]
-      # emit a runnable Vite + React + Tailwind v4 project (JSX + the extracted @theme)
+node tools/uiforge-assets.mjs    capture.json --dest ./clone/public
+      # download every external image/font/bg a capture references (bounded, self-contained)
+
+node tools/uiforge-diff.mjs      <ref> <out> [--segments segment.json] [--json]
+      # localized fidelity: per-section similarity + SSIM + structure (height/node) + element-presence
 ```
 
 ### Accessibility & craft QA (so the clone is better than a scrape)
