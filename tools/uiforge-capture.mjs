@@ -368,6 +368,31 @@ async function capture(target, viewport, opts = {}) {
     ])
     // Coverage manifest — FOUND vs CAPTURED vs SKIPPED(reason) for every dynamic dimension.
     snap.coverage = buildCoverage({ snap, interRules: rec.interRules, usedAnim, opts, toggleFindings, hoverSample })
+    // --responsive: reconcile (a second read catches A/B or animated drift) + a mobile
+    // re-capture whose per-node style diffs become node.mq.sm → responsive Tailwind variants.
+    if (opts.responsive) {
+      try {
+        const snap2 = await page.evaluate(`(${CAPTURE.toString()})()`)
+        const s2 = new Map((snap2.nodes || []).map(n => [n.i, n]))
+        let sampled = 0, changed = 0
+        for (const n of snap.nodes) { const b = s2.get(n.i); sampled++; if (!b || (n.text || '') !== (b.text || '') || Math.abs((n.y || 0) - (b.y || 0)) > 4) changed++ }
+        if (snap.coverage) snap.coverage.stability = { sampledNodes: sampled, changedNodes: changed, note: changed > sampled * 0.05 ? 'A/B or animated content detected — some regions differ run-to-run' : 'stable across two reads' }
+        await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(500)
+        const mob = await page.evaluate(`(${CAPTURE.toString()})()`)
+        const mById = new Map((mob.nodes || []).map(n => [n.i, n]))
+        const RP = ['dsp', 'fd', 'fw', 'jc', 'ai', 'gap', 'fs', 'lh', 'pt', 'pr', 'pb', 'pl', 'mt', 'mr', 'mb', 'ml', 'ta']
+        let respCount = 0
+        for (const n of snap.nodes) {
+          const m = mById.get(n.i)
+          if (!m) { n.mq = { sm: { hidden: 1 } }; respCount++; continue }
+          const d = {}
+          for (const k of RP) { const a = (n.style || {})[k] || '', b = (m.style || {})[k] || ''; if (a !== b) d[k] = b }
+          // width is left fluid (everything narrows to fit) — only LAYOUT diffs are worth a variant
+          if (Object.keys(d).length) { n.mq = { sm: d }; respCount++ }
+        }
+        if (snap.coverage) snap.coverage.responsive = { nodesWithOverrides: respCount, mobileViewport: '390x844' }
+      } catch {}
+    }
   } finally { await browser.close() }
   return snap
 }
@@ -600,6 +625,8 @@ if (isMain) {
   type scale, spacing, radii, shadows, fonts). The raw material for reconstruction.
   --record-canvas  records each <canvas> to a looping .webm (canvas/WebGL heroes).
   --sample-motion  samples JS-driven motion (Framer/GSAP/rAF) → looping @keyframes.
+  --responsive     also captures a mobile viewport → per-node responsive (max-sm:) diffs
+                   + reconciles two reads to surface A/B / animated drift (coverage.stability).
 `)
     process.exit(0)
   }
@@ -610,8 +637,9 @@ if (isMain) {
   const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
   const recordCanvas = argv.includes('--record-canvas')
   const sampleMotion = argv.includes('--sample-motion')
+  const responsive = argv.includes('--responsive')
 
-  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas, sampleMotion })
+  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas, sampleMotion, responsive })
   const tokens = tokenize(snap.nodes)
   // write any recorded canvas clips next to the capture, and point the node at its file
   const byId = new Map(snap.nodes.map(n => [n.i, n]))

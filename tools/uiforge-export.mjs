@@ -18,10 +18,11 @@
 
 import process from 'node:process'
 import path from 'node:path'
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { segment } from './uiforge-segment.mjs'
 import { tw } from './uiforge-tailwindify.mjs'
 import { buildTheme } from './uiforge-theme.mjs'
+import { downloadAssets } from './uiforge-assets.mjs'
 
 /* ============================ shared primitives ============================ */
 // short style key → camelCase CSS property (the set the exporter knows how to write inline).
@@ -56,6 +57,7 @@ const outDir = valAt('--out-dir') || './clone'
 const themePath = valAt('--theme')
 const themeJsonPath = valAt('--theme-json')
 const isFlat = argv.includes('--flat')
+const withAssets = argv.includes('--assets')
 const valueIdx = new Set(); for (const nm of ['--out-dir', '--theme', '--theme-json']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
 const capPath = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
 const cap = JSON.parse(readFileSync(capPath, 'utf8'))
@@ -260,6 +262,11 @@ function buildComponentized() {
     if (classes) cls.push(classes)
     if (n.w) cls.push(`w-[${n.w}px]`)
     cls.push('box-border')
+    // responsive: mobile (max-sm:) overrides captured by --responsive as node.mq.sm
+    if (n.mq && n.mq.sm) {
+      if (n.mq.sm.hidden) cls.push('max-sm:hidden')
+      else { const r = tw(n.mq.sm, theme).classes; if (r) cls.push(r.split(/\s+/).filter(Boolean).map(c => `max-sm:${c}`).join(' ')) }
+    }
     if (n.hover || n.focus || n.active) cls.push(`uif-${n.i}`)
     const decls = inlineDecls(leftover)
     if (n.motion) decls.push(`animation: ${q(`uif-js-${n.i} ${n.motion.dur}s linear infinite`)}`)
@@ -384,6 +391,24 @@ function buildComponentized() {
 const result = isFlat ? buildFlat() : buildComponentized()
 writeProject(result.files)
 
+// --assets: download every external asset into public/ and rewrite the generated files to
+// point at /assets/… so the built clone is self-contained. Post-process (rewrites files on
+// disk) so we don't have to thread the URL map through every JSX/CSS generator.
+let assetStats = null
+if (withAssets) {
+  const { map, stats } = await downloadAssets(cap, path.join(outDir, 'public'))
+  assetStats = stats
+  if (map.size) {
+    const pairs = [...map.entries()].sort((a, b) => b[0].length - a[0].length)  // longest URL first
+    const walk = dir => { for (const e of readdirSync(dir)) { const p = path.join(dir, e); if (statSync(p).isDirectory()) { if (e !== 'assets' && e !== 'node_modules') walk(p) } else if (/\.(tsx?|css|html|json)$/.test(e)) {
+      let s = readFileSync(p, 'utf8'), changed = false
+      for (const [url, rel] of pairs) if (s.includes(url)) { s = s.split(url).join('/' + rel); changed = true }
+      if (changed) writeFileSync(p, s)
+    } } }
+    walk(path.join(outDir, 'src'))
+  }
+}
+
 const B = '\x1b[1m', D = '\x1b[2m', G = '\x1b[32m', C = '\x1b[36m', X = '\x1b[0m'
 const appLines = result.appSrc.split('\n').length
 if (isFlat) {
@@ -397,4 +422,5 @@ if (isFlat) {
   if (result.accepted.length) console.log(`    ${C}repeats${X}  ${result.accepted.slice(0, 8).map(g => `${g.compName}×${g.count}`).join('  ')}${result.accepted.length > 8 ? ` ${D}(+${result.accepted.length - 8})${X}` : ''}`)
   console.log(`    ${G}${outDir}/${X}  ${D}src/App.tsx · src/components/*.tsx · src/content.ts · src/index.css${X}`)
 }
+if (assetStats) console.log(`    ${C}assets${X}   ${G}${assetStats.downloaded}${X} localized → public/assets ${D}(${(assetStats.bytes / 1024 / 1024).toFixed(1)} MB${assetStats.failed ? `, ${assetStats.failed} skipped` : ''}) — self-contained${X}`)
 console.log(`\n    ${D}cd ${outDir} && npm install && npx vite build${X}\n`)

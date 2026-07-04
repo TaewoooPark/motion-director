@@ -1,0 +1,126 @@
+{
+  "source": "https://github.com",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "sections": [
+    {
+      "id": 638,
+      "name": "section",
+      "tag": "section",
+      "y": 0,
+      "h": 1907
+    },
+    {
+      "id": 967,
+      "name": "section-2",
+      "tag": "section",
+      "y": 1907,
+      "h": 2316
+    },
+    {
+      "id": 1125,
+      "name": "section-3",
+      "tag": "section",
+      "y": 4223,
+      "h": 1888
+    }
+  ],
+  "repeatGroups": [
+    {
+      "containerId": 1048,
+      "hash": "divgrid(h346,h350)",
+      "tag": "div",
+      "size": 16,
+      "count": 3,
+      "memberIds": [
+        1049,
+        1068,
+        1087
+      ],
+      "repId": 1049
+    },
+    {
+      "containerId": 504,
+      "hash": "lilist-item(h152)",
+      "tag": "li",
+      "size": 8,
+      "count": 4,
+      "memberIds": [
+        505,
+        514,
+        523,
+        533
+      ],
+      "repId": 505
+    },
+    {
+      "containerId": 721,
+      "hash": "divflex(h80,h80,h80,h80,h80,h80,h80,h80,h80,h80,h80,h80)",
+      "tag": "div",
+      "size": 13,
+      "count": 2,
+      "memberIds": [
+        722,
+        843
+      ],
+      "repId": 722
+    },
+    {
+      "containerId": 45,
+      "hash": "lilist-item(h93)",
+      "tag": "li",
+      "size": 4,
+      "count": 5,
+      "memberIds": [
+        46,
+        171,
+        241,
+        318,
+        376
+      ],
+      "repId": 46
+    },
+    {
+      "containerId": 1014,
+      "hash": "divflex(h328)",
+      "tag": "div",
+      "size": 10,
+      "count": 2,
+      "memberIds": [
+        1015,
+        1027
+      ],
+      "repId": 1015
+    },
+    {
+      "containerId": 1162,
+      "hash": "divflex(h382)",
+      "tag": "div",
+      "size": 6,
+      "count": 3,
+      "memberIds": [
+        1163,
+        1177,
+        1191
+      ],
+      "repId": 1163
+    },
+    {
+      "containerId": 690,
+      "hash": "buttoninline-block(h149)",
+      "tag": "button",
+      "size": 2,
+      "count": 5,
+      "memberIds": [
+        697,
+        699,
+        701,
+        703,
+        705
+      ],
+      "repId": 697
+    }
+  ]
+}
