@@ -286,6 +286,10 @@ async function capture(target, viewport, opts = {}) {
     // and hang the exploration evaluate forever. Auto-dismiss so interaction probing stays safe.
     page.on('dialog', d => d.dismiss().catch(() => {}))
     await page.emulateMedia({ reducedMotion: 'reduce' }).catch(() => {})
+    // Controllable clock, installed pre-navigation: time flows normally through load, settle,
+    // and toggle probing, then is PAUSED for the geometry snapshot (carousels/rotators frozen)
+    // and resumed for the phases that need real time (canvas recording, motion sampling).
+    await page.clock.install().catch(() => {})
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => page.goto(url, { timeout: 30000 }).catch(() => {}))
     await page.waitForTimeout(700)
     // Scroll the whole page so IntersectionObserver reveals fire and lazy media loads —
@@ -319,6 +323,11 @@ async function capture(target, viewport, opts = {}) {
     const removeSticky = () => page.evaluate(() => { for (const el of document.querySelectorAll('body *')) { const cs = getComputedStyle(el); if ((cs.position === 'fixed' || cs.position === 'sticky') && el.getBoundingClientRect().height > 140) el.style.setProperty('display', 'none', 'important') } document.documentElement.style.overflow = 'auto' }).catch(() => {})
     await removeSticky()
     await page.waitForTimeout(300)
+    // STOP THE WORLD for the geometry snapshot: pause the virtual clock and every running
+    // animation so setInterval carousels / rotating heroes can't shift geometry mid-read.
+    // Animation-API pausing leaves no trace in the DOM, so the snapshot itself is unaffected.
+    await page.clock.pauseAt(new Date()).catch(() => {})
+    await page.evaluate(() => { try { for (const a of document.getAnimations({ subtree: true })) a.pause() } catch {} }).catch(() => {})
     // Geometry snapshot, stall-guarded: if a page is ever hostile enough to stall CAPTURE, one
     // reload + retry (toggle data is already captured) yields a clean pass.
     var snap
@@ -328,8 +337,10 @@ async function capture(target, viewport, opts = {}) {
         new Promise((_, rej) => setTimeout(() => rej(new Error('CAPTURE-timeout')), 30000)),
       ])
     } catch {
+      await page.clock.resume().catch(() => {})   // a reload needs live timers to settle
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {})
       await page.waitForTimeout(700); await prime(); await page.waitForTimeout(400); await removeSticky(); await page.waitForTimeout(300)
+      await page.clock.pauseAt(new Date()).catch(() => {})
       snap = await page.evaluate(`(${CAPTURE.toString()})()`)
     }
     // server-side (no CORS): recover @font-face + used @keyframes + the :hover/:focus rules
@@ -348,6 +359,10 @@ async function capture(target, viewport, opts = {}) {
       }, rec.interRules)
       for (const n of snap.nodes) { const m = map[n.i]; if (!m) continue; if (m.hover) n.hover = m.hover; if (m.focus) n.focus = m.focus; if (m.active) n.active = m.active }
     }
+    // Geometry is read — restart time. Everything below (canvas recording, motion sampling,
+    // hover diffing, the responsive pass) runs against live in-page timers again.
+    await page.clock.resume().catch(() => {})
+    await page.evaluate(() => { try { for (const a of document.getAnimations({ subtree: true })) a.play() } catch {} }).catch(() => {})
     // Canvas/WebGL can't be reproduced from computed styles — the pixels are drawn
     // imperatively. So we RECORD it: captureStream() → MediaRecorder → a WebM the
     // reconstruction embeds as a looping <video>. Opt-in (--record-canvas) — each clip ~2s.

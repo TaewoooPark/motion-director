@@ -62,6 +62,11 @@ async function freeze(target, viewport, opts = {}) {
     const page = await browser.newPage({ viewport, ...(opts.headed ? { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36' } : {}) })
     if (opts.headed) await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) })
     await page.emulateMedia({ reducedMotion: 'reduce' }).catch(() => {})
+    // Install a controllable clock BEFORE navigation (it must hook timers at init). Time flows
+    // normally through load + settle, then we PAUSE it at the snapshot instant — so carousels,
+    // rotating heroes, and any setInterval-driven content stop dead. This is what makes the
+    // freeze deterministic on JS-personalized pages (openai-style "different slide per look").
+    if (!opts.liveTimers) await page.clock.install().catch(() => {})
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => page.goto(url, { timeout: 30000 }).catch(() => {}))
     await page.waitForTimeout(700)
     // Scroll the whole page top→bottom→top so IntersectionObserver reveals fire and lazy
@@ -73,6 +78,16 @@ async function freeze(target, viewport, opts = {}) {
       window.scrollTo(0, 0)
     }).catch(() => {})
     await page.waitForTimeout(400)
+    // STOP THE WORLD at the snapshot instant: pause the virtual clock (setInterval carousels,
+    // rotating heroes) and every running animation (WAAPI + CSS). The optional --shot screenshot
+    // is taken at this exact frozen instant, so "original" and "freeze" come from the SAME frame —
+    // the aligned proof pair. Pausing via the animation API leaves no trace in the DOM/outerHTML.
+    if (!opts.liveTimers) {
+      await page.clock.pauseAt(new Date()).catch(() => {})
+      await page.evaluate(() => { try { for (const a of document.getAnimations({ subtree: true })) a.pause() } catch {} }).catch(() => {})
+    }
+    if (opts.shot) await page.screenshot({ path: opts.shot, clip: { x: 0, y: 0, width: viewport.width, height: viewport.height } }).catch(() => {})
+    if (opts.fullShot) await page.screenshot({ path: opts.fullShot, fullPage: true }).catch(() => {})
     // Collect external stylesheet hrefs (links first, in document order, then any @import'd
     // sheets not already seen), de-duped, each carrying its media query. Then grab the fully
     // rendered document — outerHTML already contains the inline <style> blocks injected by
@@ -147,22 +162,28 @@ if (isMain) {
   uiforge-freeze — the faithful, offline ORACLE (real CSS, frozen DOM, no scripts).
 
   node uiforge-freeze.mjs <url│file.html> [--out freeze.html] [--viewport 1440x900]
+                          [--shot ref.png] [--full-shot ref-full.png] [--headed] [--live-timers]
 
   Keeps the site's REAL stylesheets + fully-rendered DOM — unlike uiforge-reconstruct,
   which re-derives every style from computed values and drifts (collapse, empty boxes).
-  Renders pixel-faithful to the live site; deterministic because every <script> is stripped.
-  The baseline a later clean React rebuild is pixel-diffed against.
+  Renders pixel-faithful to the live site; deterministic because every <script> is stripped
+  AND time is stopped at the snapshot instant (carousels/rotators frozen mid-frame).
+  --shot saves a live screenshot at that exact frozen instant — the aligned proof pair.
+  --live-timers opts out of the time-stop. The baseline the clean React rebuild is diffed against.
 `)
     process.exit(0)
   }
   const valAt = n => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? argv[i + 1] : null }
   const [vw, vh] = (valAt('--viewport') || '1440x900').split('x').map(Number)
   const outPath = valAt('--out') || 'freeze.html'
-  const valueIdx = new Set(); for (const nm of ['--out', '--viewport']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
+  const valueIdx = new Set(); for (const nm of ['--out', '--viewport', '--shot', '--full-shot']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
   const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
   if (!target) { console.error('  no target given — pass a url or a .html file'); process.exit(1) }
 
-  const snap = await freeze(target, { width: vw, height: vh }, { headed: argv.includes('--headed') })
+  const snap = await freeze(target, { width: vw, height: vh }, {
+    headed: argv.includes('--headed'), liveTimers: argv.includes('--live-timers'),
+    shot: valAt('--shot'), fullShot: valAt('--full-shot'),
+  })
   if (!snap || !snap.html) { console.error('  freeze failed: no document captured'); process.exit(2) }
   const sheets = await fetchSheets(snap.sheets || [])
   const { html, origin, linksRemoved, scriptsRemoved } = assemble(snap, sheets)
