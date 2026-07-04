@@ -23,4 +23,11 @@ npm-debug.log*
 /theme.json
 /capture.json
 /segment.json
+*.capture.json
+/clone/
 .uiforge-scratch/
+# Scratch / verification workspaces created by build + verify agents
+.verify-*/
+.scratch/
+*-clone/
+dist/
