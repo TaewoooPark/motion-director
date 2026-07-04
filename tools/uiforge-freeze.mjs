@@ -208,13 +208,13 @@ if (isMain) {
   const valAt = n => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? argv[i + 1] : null }
   const [vw, vh] = (valAt('--viewport') || '1440x900').split('x').map(Number)
   const outPath = valAt('--out') || 'freeze.html'
-  const valueIdx = new Set(); for (const nm of ['--out', '--viewport', '--shot', '--full-shot', '--profile']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
+  const valueIdx = new Set(); for (const nm of ['--out', '--viewport', '--shot', '--full-shot', '--profile', '--storage-state']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
   const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
   if (!target) { console.error('  no target given — pass a url or a .html file'); process.exit(1) }
 
   const snap = await freeze(target, { width: vw, height: vh }, {
     headed: argv.includes('--headed'), liveTimers: argv.includes('--live-timers'),
-    shot: valAt('--shot'), fullShot: valAt('--full-shot'), profile: valAt('--profile'),
+    shot: valAt('--shot'), fullShot: valAt('--full-shot'), profile: valAt('--profile'), storageState: valAt('--storage-state'),
   })
   if (!snap || !snap.html) { console.error('  freeze failed: no document captured'); process.exit(2) }
   const sheets = await fetchSheets(snap.sheets || [])

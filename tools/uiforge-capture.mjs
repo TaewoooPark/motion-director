@@ -318,13 +318,15 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 export async function launchFor(chromium, viewport, opts = {}) {
   const headed = !!(opts.headed || opts.profile)
   const base = { headless: !headed, args: headed ? ['--disable-blink-features=AutomationControlled'] : [] }
-  const ctx = { viewport, ...(headed ? { userAgent: UA } : {}) }
+  // --storage-state loads a saved Playwright auth session (cookies + localStorage) so a capture
+  // reaches content behind a login — the scriptable alternative to a persistent --profile.
+  const ctx = { viewport, ...(headed ? { userAgent: UA } : {}), ...(opts.storageState ? { storageState: opts.storageState } : {}) }
   let browser, context, page
   if (opts.profile) {
     try { context = await chromium.launchPersistentContext(opts.profile, { ...base, ...ctx, channel: 'chrome' }) }
     catch { context = await chromium.launchPersistentContext(opts.profile, { ...base, ...ctx }) }
     page = context.pages()[0] || await context.newPage(); if (viewport) await page.setViewportSize(viewport).catch(() => {})
-  } else if (headed) {
+  } else if (headed || opts.storageState) {
     try { browser = await chromium.launch({ ...base, channel: 'chrome' }) } catch { browser = await chromium.launch(base) }
     context = await browser.newContext(ctx); page = await context.newPage()
   } else {
@@ -736,6 +738,8 @@ if (isMain) {
   --headed         launch a real (visible) browser to clear Cloudflare/bot JS walls.
   --profile <dir>  persist that browser's cookies (a passed cf_clearance is REUSED next run);
                    implies --headed, tries the real Chrome channel, and waits out the challenge.
+                   Log in once in this profile → later captures reach content behind the login.
+  --storage-state <file>  load a saved Playwright auth session (cookies+localStorage) instead.
   --responsive     also captures a mobile viewport → per-node responsive (max-sm:) diffs
                    + reconciles two reads to surface A/B / animated drift (coverage.stability).
 `)
@@ -744,15 +748,16 @@ if (isMain) {
   const valAt = n => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? argv[i + 1] : null }
   const [vw, vh] = (valAt('--viewport') || '1440x900').split('x').map(Number)
   const outPath = valAt('--out') || 'capture.json'
-  const valueIdx = new Set(); for (const nm of ['--out', '--viewport', '--profile']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
+  const valueIdx = new Set(); for (const nm of ['--out', '--viewport', '--profile', '--storage-state']) { const i = argv.indexOf(nm); if (i >= 0) valueIdx.add(i + 1) }
   const target = argv.find((a, idx) => !a.startsWith('--') && !valueIdx.has(idx))
   const recordCanvas = argv.includes('--record-canvas')
   const sampleMotion = argv.includes('--sample-motion')
   const responsive = argv.includes('--responsive')
   const headed = argv.includes('--headed')
   const profile = valAt('--profile')
+  const storageState = valAt('--storage-state')
 
-  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas, sampleMotion, responsive, headed, profile })
+  const snap = await capture(target, { width: vw, height: vh }, { recordCanvas, sampleMotion, responsive, headed, profile, storageState })
   const tokens = tokenize(snap.nodes)
   // write any recorded canvas clips next to the capture, and point the node at its file
   const byId = new Map(snap.nodes.map(n => [n.i, n]))
