@@ -54,6 +54,7 @@ for (const n of nodes) { const p = byId.has(n.pid) ? n.pid : -1; if (!kids.has(p
 // iteration count, delay, direction, fill) when we have it, else a sampled loop.
 export function animShorthand(n) {
   const m = n.motion, name = `uif-js-${n.i}`
+  if (m.scroll) return `${name} auto linear both`   // progress comes from animation-timeline
   if (!m.exact) return `${name} ${m.dur}s linear infinite`
   return `${name} ${m.dur}s ${m.ease || 'linear'} ${m.delay || 0}s ${m.iter || 1} ${m.dir || ''} ${m.fill || 'both'}`.replace(/\s+/g, ' ').trim()
 }
@@ -79,7 +80,7 @@ function styleOf(n) {
     const allOut = ch.length > 0 && ch.every(c => { const p = (c.style || {}).pos; return p === 'absolute' || p === 'fixed' })
     if (n.h && ((ch.length === 0 && !n.text) || allOut)) decl.push(`min-height:${n.h}px`)
   }
-  if (n.motion) decl.push(`animation:${animShorthand(n)}`)  // exact WAAPI timing, or sampled → loop
+  if (n.motion) { decl.push(`animation:${animShorthand(n)}`); if (n.motion.scroll) decl.push(`animation-timeline:${n.motion.scroll}()`) }  // exact WAAPI timing / scroll-linked / sampled loop
   return decl.join(';')
 }
 function pseudoStyle(ps) {

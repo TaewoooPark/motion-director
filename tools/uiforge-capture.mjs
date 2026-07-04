@@ -292,8 +292,13 @@ async function extractWaapi(page) {
       if (!kf || kf.length < 2) return
       const css = toCss(kf); if (!css) return
       const key = i + '|' + css; if (seen.has(key)) return; seen.add(key)
-      // skip sub-50ms "animations" — noise, or scroll-linked effects (duration≈0, driven by a
-      // scroll timeline) which time-based @keyframes can't reproduce; those are patch-3 territory.
+      // A SCROLL-LINKED animation drives its progress from a Scroll/ViewTimeline, not the clock —
+      // CSS reproduces it exactly with `animation-timeline: scroll()/view()`, no duration.
+      const tl = anim.timeline && anim.timeline.constructor && anim.timeline.constructor.name
+      if (tl === 'ViewTimeline' || tl === 'ScrollTimeline') {
+        out.push({ i, kf: css, scroll: tl === 'ViewTimeline' ? 'view' : 'scroll' }); return
+      }
+      // time-based: skip sub-50ms noise, keep the real curve/iteration/delay/fill.
       const dur = typeof t.duration === 'number' ? t.duration / 1000 : 0; if (dur < 0.05) return
       out.push({ i, kf: css, dur: +dur.toFixed(3), iter: t.iterations === Infinity ? 'infinite' : (t.iterations || 1),
         ease: typeof t.easing === 'string' && t.easing !== 'linear' ? t.easing : 'linear', delay: +((t.delay || 0) / 1000).toFixed(3),
@@ -407,7 +412,8 @@ async function capture(target, viewport, opts = {}) {
     // exact beats the --sample-motion approximation. Store the full timing so playback matches.
     { const byIdW = new Map(snap.nodes.map(n => [n.i, n]))
       for (const m of await extractWaapi(page)) { const n = byIdW.get(m.i); if (!n) continue
-        n.motion = { kf: m.kf, dur: m.dur, iter: m.iter, ease: m.ease, delay: m.delay, dir: m.dir, fill: m.fill, exact: 1 } } }
+        n.motion = m.scroll ? { kf: m.kf, scroll: m.scroll, exact: 1 }
+          : { kf: m.kf, dur: m.dur, iter: m.iter, ease: m.ease, delay: m.delay, dir: m.dir, fill: m.fill, exact: 1 } } }
     // Geometry is read — restart time. Everything below (canvas recording, motion sampling,
     // hover diffing, the responsive pass) runs against live in-page timers again.
     await page.clock.resume().catch(() => {})
