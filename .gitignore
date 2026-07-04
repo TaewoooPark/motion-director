@@ -31,3 +31,6 @@ npm-debug.log*
 .scratch/
 *-clone/
 dist/
+
+# local-only showcase workshop (demo code + heavy archives — never committed; only docs/ images+videos go to git)
+showcase-workshop/
