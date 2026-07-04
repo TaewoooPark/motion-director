@@ -28,7 +28,7 @@
 <p align="center"><sub><em><b>⭐ The Archive — vercel.com, cloned so it <u>works</u>.</b> This is running <b>offline</b> from a recorded archive: the real Next.js code booted, and clicking a nav item performs a genuine <b>client-side transition</b> (content swaps, no reload) from the cached RSC data — <b>not a re-render, the actual behavior</b>. Tabs, filters, lists, and scroll-load work the same way, because it is the site's own code driving its own data.</em></sub></p>
 
 <p align="center">
-  <img src="./docs/clone-linear.png?v=3230" alt="UIForge freeze of linear.app, the live site and the pixel-faithful freeze side by side in Linear's own Inter Variable webfont." width="100%">
+  <img src="./docs/showcase-linear.png?v=3520" alt="UIForge freeze of linear.app, the live site and the pixel-faithful freeze side by side in Linear's own Inter Variable webfont." width="100%">
 </p>
 <p align="center"><sub><em><b>The Freeze — linear.app, pixel-faithful.</b> The site's real CSS and <code>@font-face</code> kept, so the headline is <b>Linear's real Inter Variable</b>. And a <b>Rebuild</b> turns any of this into an editable React + Tailwind project with your content.</em></sub></p>
 
@@ -90,11 +90,11 @@ Each site below was **archived and replayed offline** by the plugin (`uiforge-ar
 <td align="center"><sub><b>vercel.com</b> — clicking Pricing is a real <b>client-side transition</b>, no reload, from cached RSC. (189 responses.)</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="./docs/showcase-linear.gif?v=3510" alt="linear.app replayed offline with a client-side transition" width="100%"></td>
+<td align="center"><img src="./docs/showcase-linear.gif?v=3520" alt="linear.app replayed offline: scrolling reveals its staggered entrance motion in the real Inter Variable font" width="100%"></td>
 <td align="center"><img src="./docs/showcase-framer.gif?v=3510" alt="framer.com replayed offline: real motion and video hero play" width="100%"></td>
 </tr>
 <tr>
-<td align="center"><sub><b>linear.app</b> — client-side navigation + its real Inter Variable and staggered motion. (426 responses.)</sub></td>
+<td align="center"><sub><b>linear.app</b> — scrolling the offline replay reveals its <b>staggered entrance motion</b>, in its real Inter Variable. (426 responses.)</sub></td>
 <td align="center"><sub><b>framer.com</b> — the real <b>motion + video hero</b> play offline. (250 responses.)</sub></td>
 </tr>
 </table>
@@ -119,26 +119,10 @@ And each is **pixel-faithful** as a Freeze — original (left) vs freeze (right)
 
 ## It clones motion and interaction too — not just a static snapshot
 
-<table>
-<tr>
-<td width="50%" align="center"><img src="./docs/motion-canvas.gif?v=3310" alt="Vercel's canvas/WebGL triangle hero, recorded to a looping video and replayed in the clone" width="100%"></td>
-<td width="50%" align="center"><img src="./docs/interaction-menu.gif?v=3310" alt="A GitHub dropdown menu opening on click inside the reconstruction" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>Canvas / WebGL → video.</b> vercel.com's spinning-triangle hero can't be rebuilt from styles, so UIForge <b>records</b> it and replays it as a looping <code>&lt;video&gt;</code>.</sub></td>
-<td align="center"><sub><b>Dropdowns / menus / accordions.</b> UIForge clicks the real toggle during capture, records the panel's open state, and replays it — the clone's menu <b>opens on click</b>.</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="./docs/motion-waapi.gif?v=3460" alt="linear.app's staggered entrance animation replayed exactly in the clone with the real easing curve and stagger" width="100%"></td>
-<td align="center"><img src="./docs/interaction-hover.gif?v=3310" alt="Hover states replayed in the reconstruction as the cursor moves over interactive elements" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>Exact JS motion.</b> Framer / Motion animate through <code>Element.animate()</code> — UIForge hooks it and replays the <b>real</b> keyframes, curve, and stagger (linear.app's entrance, above), not a sampled guess.</sub></td>
-<td align="center"><sub><b>Hover / focus / active.</b> The <code>:hover</code> rules are recovered from the stylesheets and replayed, so the clone <b>reacts to the pointer</b>.</sub></td>
-</tr>
-</table>
-
-<p align="center"><sub><em>All four are produced by the tools from the capture alone — no hand-authoring. CSS animations and scroll-reveal states come across automatically; canvas video and JS-motion sampling are opt-in flags.</em></sub></p>
+<p align="center">
+  <img src="./docs/motion-waapi.gif?v=3520" alt="linear.app's staggered entrance animation replayed exactly in the clone — the real easing curve and stagger, extracted from its WAAPI Element.animate() calls, not a sampled guess" width="84%">
+</p>
+<p align="center"><sub><em><b>Exact JS motion — not a sampled guess.</b> Framer / Motion animate through <code>Element.animate()</code>; UIForge hooks it and replays the <b>real</b> keyframes, easing, and stagger — linear.app's entrance, above. The same capture path carries the rest across automatically: <b>CSS animations and scroll-reveal</b> states come over, a <b>canvas / WebGL</b> hero is recorded and replayed as a looping <code>&lt;video&gt;</code>, <b>dropdowns / menus / accordions</b> keep the open state captured on click, and <code>:hover</code> / <code>:focus</code> rules are recovered from the stylesheets so the rebuild <b>reacts to the pointer</b>.</em></sub></p>
 
 ---
 

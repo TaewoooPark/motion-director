@@ -28,7 +28,7 @@
 <p align="center"><sub><em><b>⭐ 아카이브 — vercel.com을 <u>작동하게</u> 복제.</b> 이건 녹화된 아카이브에서 <b>오프라인</b>으로 돌아가는 중이다. 진짜 Next.js 코드가 부팅됐고, 내비를 클릭하면 캐시된 RSC 데이터로 진짜 <b>클라이언트 전환</b>(콘텐츠 교체, 새로고침 없음)이 일어난다 — 다시 그린 게 아니라 <b>실제 동작</b>이다. 탭·필터·목록·스크롤 로드도 같은 방식으로 작동한다. 사이트 자신의 코드가 자기 데이터를 굴리기 때문이다.</em></sub></p>
 
 <p align="center">
-  <img src="./docs/clone-linear.png?v=3230" alt="linear.app의 UIForge 동결본. 라이브 사이트와 픽셀 충실 동결본을 Linear 자신의 Inter Variable 웹폰트로 나란히." width="100%">
+  <img src="./docs/showcase-linear.png?v=3520" alt="linear.app의 UIForge 동결본. 라이브 사이트와 픽셀 충실 동결본을 Linear 자신의 Inter Variable 웹폰트로 나란히." width="100%">
 </p>
 <p align="center"><sub><em><b>동결본 — linear.app, 픽셀 충실.</b> 사이트의 진짜 CSS와 <code>@font-face</code>를 지켜 헤드라인이 <b>Linear의 진짜 Inter Variable</b>로 렌더된다. 그리고 <b>재건본</b>은 이 모든 걸 편집 가능한 React + Tailwind 프로젝트(당신 콘텐츠로)로 바꾼다.</em></sub></p>
 
@@ -90,11 +90,11 @@
 <td align="center"><sub><b>vercel.com</b> — Pricing 클릭이 새로고침 없는 진짜 <b>클라이언트 전환</b>(캐시된 RSC). (189개.)</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="./docs/showcase-linear.gif?v=3510" alt="linear.app을 오프라인 재생, 클라이언트 전환" width="100%"></td>
+<td align="center"><img src="./docs/showcase-linear.gif?v=3520" alt="linear.app을 오프라인 재생: 스크롤하면 진짜 Inter Variable 폰트로 스태거 등장 모션이 펼쳐진다" width="100%"></td>
 <td align="center"><img src="./docs/showcase-framer.gif?v=3510" alt="framer.com을 오프라인 재생: 진짜 모션과 영상 히어로" width="100%"></td>
 </tr>
 <tr>
-<td align="center"><sub><b>linear.app</b> — 클라이언트 내비 + 진짜 Inter Variable와 스태거 모션. (426개.)</sub></td>
+<td align="center"><sub><b>linear.app</b> — 오프라인 재생본을 스크롤하면 진짜 Inter Variable로 <b>스태거 등장 모션</b>이 펼쳐진다. (426개.)</sub></td>
 <td align="center"><sub><b>framer.com</b> — 진짜 <b>모션 + 영상 히어로</b>가 오프라인에서 재생. (250개.)</sub></td>
 </tr>
 </table>
@@ -119,26 +119,10 @@
 
 ## 정적 스냅샷이 아니라 모션과 인터랙션까지 복제한다
 
-<table>
-<tr>
-<td width="50%" align="center"><img src="./docs/motion-canvas.gif?v=3310" alt="Vercel의 canvas/WebGL 삼각형 히어로를 영상으로 녹화해 클론에서 반복 재생" width="100%"></td>
-<td width="50%" align="center"><img src="./docs/interaction-menu.gif?v=3310" alt="재구성 안에서 GitHub 드롭다운 메뉴가 클릭에 열린다" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>Canvas / WebGL → 영상.</b> vercel.com의 도는 삼각형 히어로는 스타일로 재구성할 수 없어서 <b>녹화</b>해 반복 재생 <code>&lt;video&gt;</code>로 넣는다.</sub></td>
-<td align="center"><sub><b>드롭다운 · 메뉴 · 아코디언.</b> 캡처 중에 실제 토글을 클릭해 열린 상태를 기록하고 replay한다. 클론의 메뉴가 <b>클릭에 열린다.</b></sub></td>
-</tr>
-<tr>
-<td align="center"><img src="./docs/motion-js.gif?v=3310" alt="gsap.com의 JS 모션을 샘플링해 반복 CSS keyframes로 재생" width="100%"></td>
-<td align="center"><img src="./docs/interaction-hover.gif?v=3310" alt="커서가 인터랙티브 요소 위를 지날 때 재구성에서 hover 상태가 재생된다" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>JS 모션 → keyframes.</b> Framer나 GSAP는 JS로 움직여 스타일시트에 아무것도 없다. UIForge가 움직임을 <b>샘플링</b>해 반복 <code>@keyframes</code>로 합성한다(위는 gsap.com).</sub></td>
-<td align="center"><sub><b>hover · focus · active.</b> <code>:hover</code> 규칙을 스타일시트에서 복구해 replay하므로 클론이 <b>포인터에 반응한다.</b></sub></td>
-</tr>
-</table>
-
-<p align="center"><sub><em>네 가지 모두 캡처만으로 도구가 만들어낸다. 손으로 작성한 부분은 없다. CSS 애니메이션과 스크롤 등장 상태는 자동으로 넘어오고, canvas 영상과 JS 모션 샘플링은 선택 플래그다.</em></sub></p>
+<p align="center">
+  <img src="./docs/motion-waapi.gif?v=3520" alt="linear.app의 스태거 등장 애니메이션을 클론에서 그대로 재생 — WAAPI Element.animate() 호출에서 뽑아낸 진짜 이징 곡선과 스태거, 샘플링한 근사치가 아니다" width="84%">
+</p>
+<p align="center"><sub><em><b>진짜 JS 모션 — 샘플링한 근사치가 아니다.</b> Framer / Motion은 <code>Element.animate()</code>로 움직인다. UIForge가 이를 후킹해 <b>진짜</b> keyframes·이징·스태거를 그대로 재생한다 — 위 linear.app의 등장 모션. 같은 캡처 경로가 나머지도 자동으로 가져온다: <b>CSS 애니메이션과 스크롤 등장</b> 상태가 넘어오고, <b>canvas / WebGL</b> 히어로는 녹화해 반복 <code>&lt;video&gt;</code>로 재생하며, <b>드롭다운 · 메뉴 · 아코디언</b>은 클릭으로 잡은 열린 상태를 유지하고, <code>:hover</code> / <code>:focus</code> 규칙은 스타일시트에서 복구해 재건본이 <b>포인터에 반응한다.</b></em></sub></p>
 
 ---
 
