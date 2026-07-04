@@ -107,6 +107,12 @@ function CAPTURE() {
       q = q.replace(/\s+/g, ' '); if (q && /\S|^ $/.test(q)) node.post = q.slice(0, 400) }
     if (tag === 'a') node.href = el.getAttribute('href') || undefined
     if (tag === 'img') { node.src = el.currentSrc || el.getAttribute('src') || undefined; node.alt = el.getAttribute('alt') || undefined }
+    if (tag === 'video') {   // real hero/background <video> — capture its source + poster so it plays in the clone
+      const src = el.currentSrc || el.getAttribute('src') || (el.querySelector('source') && el.querySelector('source').src) || undefined
+      if (src && !/^blob:/.test(src)) node.videoSrc = src
+      if (el.poster) node.poster = el.poster
+      node.vattr = { loop: el.loop, muted: el.muted, autoplay: el.autoplay || el.hasAttribute('autoplay'), controls: el.controls }
+    }
     if (tag === 'svg') { try { node.svgHTML = el.outerHTML.slice(0, 40000) } catch { node.svg = true } }
     if (/^h[1-6]$/.test(tag)) node.level = +tag[1]
     for (const [slot, pe] of [['before', '::before'], ['after', '::after']]) {   // decorative pseudo-elements

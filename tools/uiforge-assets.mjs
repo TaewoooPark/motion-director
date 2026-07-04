@@ -30,6 +30,8 @@ export function collectAssetUrls(cap) {
   const add = (u, kind) => { if (u && !/^data:/.test(u) && /^https?:\/\//.test(u) && !out.has(u)) out.set(u, kind) }
   for (const n of cap.nodes || []) {
     if (n.src) add(n.src, 'img')
+    if (n.videoSrc) add(n.videoSrc, 'video')
+    if (n.poster) add(n.poster, 'img')
     const s = n.style || {}
     if (s.bi) for (const u of urlsInCss(s.bi)) add(u, 'bg')
     for (const slot of ['before', 'after']) if (n[slot] && n[slot].style && n[slot].style.bi) for (const u of urlsInCss(n[slot].style.bi)) add(u, 'bg')

@@ -97,6 +97,9 @@ function render(n, depth) {
   if (depth > 40) return ''
   // a recorded canvas/WebGL hero → a looping muted video sized exactly like the canvas
   if (n.video) return `<video src="${attr(n.video)}" autoplay loop muted playsinline style="${attr(styleOf(n))}"></video>`
+  if (n.videoSrc) { const v = n.vattr || {}   // a real hero/background <video>
+    const a = [v.autoplay && 'autoplay', v.loop && 'loop', (v.muted || v.autoplay) && 'muted', v.controls && 'controls', 'playsinline'].filter(Boolean).join(' ')
+    return `<video src="${attr(n.videoSrc)}"${n.poster ? ` poster="${attr(n.poster)}"` : ''} ${a} style="${attr(styleOf(n))}"></video>` }
   if (n.svgHTML) return `<div style="${attr(styleOf(n))}">${n.svgHTML}</div>`  // replay the captured SVG whole
   const tag = /^[a-z][a-z0-9]*$/.test(n.tag) ? n.tag : 'div'
   const st = styleOf(n)

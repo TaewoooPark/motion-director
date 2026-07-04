@@ -149,6 +149,9 @@ function flatStyleObj(n) {
 function flatJSX(n, d) {
   if (d > 40) return ''
   if (n.video) return `<video src=${q('/' + n.video)} autoPlay loop muted playsInline style=${flatStyleObj(n)} />`
+  if (n.videoSrc) { const v = n.vattr || {}   // a real hero/background <video>
+    const a = [v.autoplay && 'autoPlay', v.loop && 'loop', (v.muted || v.autoplay) && 'muted', v.controls && 'controls', 'playsInline'].filter(Boolean).join(' ')
+    return `<video src=${q(n.videoSrc)}${n.poster ? ` poster=${q(n.poster)}` : ''} ${a} style=${flatStyleObj(n)} />` }
   if (n.svgHTML) return `<div style=${flatStyleObj(n)} dangerouslySetInnerHTML={{ __html: ${q(n.svgHTML)} }} />`
   const tag = /^[a-z][a-z0-9]*$/.test(n.tag) && !SVGTAG.test(n.tag) ? n.tag : 'div'
   let a = `<${tag} style=${flatStyleObj(n)}`
@@ -317,6 +320,11 @@ function buildComponentized() {
       const { className, style } = classAndStyle(n)
       const vp = propAt(ctx, p, 'video'); const src = vp ? `{"/" + d.${vp}}` : q('/' + n.video)
       return `<video src=${src} autoPlay loop muted playsInline${className ? ` className=${q(className)}` : ''}${style ? ` style=${style}` : ''} />`
+    }
+    if (n.videoSrc) {
+      const { className, style } = classAndStyle(n), v = n.vattr || {}
+      const a = [v.autoplay && 'autoPlay', v.loop && 'loop', (v.muted || v.autoplay) && 'muted', v.controls && 'controls', 'playsInline'].filter(Boolean).join(' ')
+      return `<video src=${q(n.videoSrc)}${n.poster ? ` poster=${q(n.poster)}` : ''} ${a}${className ? ` className=${q(className)}` : ''}${style ? ` style=${style}` : ''} />`
     }
     if (n.svgHTML) {
       const { className, style } = classAndStyle(n)
