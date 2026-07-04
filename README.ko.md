@@ -22,15 +22,21 @@
   <img src="https://img.shields.io/badge/Zero--dep%20capture%20·%20diff-000000?style=flat-square&logo=nodedotjs&logoColor=white&labelColor=000000" alt="Zero-dep capture + diff">
 </p>
 
-<p align="center">
-  <img src="./docs/archive-behavior.gif?v=3490" alt="vercel.com의 오프라인 아카이브가 재생되는 모습. Pricing을 클릭하면 새로고침 없이 콘텐츠가 전환된다. 사이트 자신의 JavaScript가 캐시된 데이터로 실제로 동작한다." width="100%">
-</p>
-<p align="center"><sub><em><b>⭐ 아카이브 — vercel.com을 <u>작동하게</u> 복제.</b> 이건 녹화된 아카이브에서 <b>오프라인</b>으로 돌아가는 중이다. 진짜 Next.js 코드가 부팅됐고, 내비를 클릭하면 캐시된 RSC 데이터로 진짜 <b>클라이언트 전환</b>(콘텐츠 교체, 새로고침 없음)이 일어난다 — 다시 그린 게 아니라 <b>실제 동작</b>이다. 탭·필터·목록·스크롤 로드도 같은 방식으로 작동한다. 사이트 자신의 코드가 자기 데이터를 굴리기 때문이다.</em></sub></p>
+<table>
+<tr>
+<td width="50%"><img src="./docs/hero-shadcn-live.png?v=3530" alt="ui.shadcn.com — 라이브 사이트" width="100%"></td>
+<td width="50%"><img src="./docs/hero-shadcn-copy.png?v=3530" alt="ui.shadcn.com — UIForge가 완전 오프라인으로 렌더한 카피, 라이브와 픽셀까지 동일" width="100%"></td>
+</tr>
+</table>
+<p align="center"><sub><em><b>둘 중 하나가 카피다. 어느 쪽인지 알겠는가?</b>  왼쪽은 라이브 <b>ui.shadcn.com</b>. 오른쪽은 UIForge가 만든 카피로, <b>네트워크 요청을 전부 차단한 채 오프라인으로</b> 렌더했다. 비슷한 정도가 아니라 <b>픽셀까지 완전히 동일 — MD5 해시가 같다</b>. 진짜 DOM, 진짜 CSS, 진짜 웹폰트를 자립형 단일 파일에 얼려 넣은 것이다.</em></sub></p>
 
-<p align="center">
-  <img src="./docs/showcase-linear.png?v=3520" alt="linear.app의 UIForge 동결본. 라이브 사이트와 픽셀 충실 동결본을 Linear 자신의 Inter Variable 웹폰트로 나란히." width="100%">
-</p>
-<p align="center"><sub><em><b>동결본 — linear.app, 픽셀 충실.</b> 사이트의 진짜 CSS와 <code>@font-face</code>를 지켜 헤드라인이 <b>Linear의 진짜 Inter Variable</b>로 렌더된다. 그리고 <b>재건본</b>은 이 모든 걸 편집 가능한 React + Tailwind 프로젝트(당신 콘텐츠로)로 바꾼다.</em></sub></p>
+<table>
+<tr>
+<td width="50%"><img src="./docs/hero-vercel-live.png?v=3530" alt="vercel.com — 라이브 사이트" width="100%"></td>
+<td width="50%"><img src="./docs/hero-vercel-copy.png?v=3530" alt="vercel.com — UIForge의 오프라인 카피, canvas 히어로까지 픽셀 동일" width="100%"></td>
+</tr>
+</table>
+<p align="center"><sub><em><b>다시 한번: 왼쪽이 라이브 vercel.com, 오른쪽이 오프라인 카피.</b> <b>canvas 히어로</b>까지 픽셀 그대로 맞는다 — MD5 동일. 그리고 이건 <b>동결본</b>일 뿐이다. 같은 캡처가 작동하는 <b>아카이브</b>(탭·전환·스크롤 — ↓)로도, 당신 콘텐츠를 넣는 편집 가능한 React <b>재건본</b>으로도 돌아간다.</em></sub></p>
 
 ---
 
@@ -45,34 +51,6 @@
 | **재건본** (`uiforge-export`) | **깔끔하게 컴포넌트화된** Vite + React + Tailwind 프로젝트 | 디자인 위에 쌓고, 편집하고, 당신 콘텐츠로 배포 |
 
 **아카이브는 진짜 JavaScript를 캐시된 데이터에 대고 실행**한다. 그래서 모든 인터랙션이 원본 그대로 동작한다 — 재구성이 아니라 *그게 곧 그 동작*이기 때문. (이게 "Save As"를 이기는 이유다. 모던 앱을 순진하게 저장하면 앱이 fetch하는 XHR·API 데이터가 안 담겨 깨진 껍데기로 열린다. 아카이브는 그 데이터를 녹화하고 *재생*한다.) 동결본은 라이브와 동일하게 렌더되고, 재건본은 그 동결본에 대고 오프라인·결정적으로 diff된다.
-
-## 다섯 가지로 카피
-
-실제 사이트 다섯 개를 캡처만으로 동결했다. 원본(좌) vs 동결본(우):
-
-<p align="center">
-  <img src="./docs/copy-stripe.png?v=3460" alt="stripe.com 원본 vs 동결본, 거의 픽셀 동일" width="100%">
-</p>
-<p align="center"><sub><em><b>stripe.com</b> — 그라디언트 히어로, 로고 줄, 쿠키 배너까지. 동결본은 진짜 CSS를 지켜 그대로 렌더된다(손실 재구성은 이 페이지를 40% 높이로 붕괴시켰다).</em></sub></p>
-
-<table>
-<tr>
-<td width="50%" align="center"><img src="./docs/copy-anthropic.png?v=3460" alt="anthropic.com 원본 vs 동결본" width="100%"></td>
-<td width="50%" align="center"><img src="./docs/copy-vercel.png?v=3460" alt="vercel.com 원본 vs 동결본, canvas 삼각형 포함" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>anthropic.com</b> — 헤드라인·내비·본문·오렌지 밴드까지 충실하게.</sub></td>
-<td align="center"><sub><b>vercel.com</b> — <b>canvas 삼각형</b> 히어로까지 렌더된다(동결본은 라이브 페이지를 지켜서 canvas가 공짜로 딸려온다).</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="./docs/copy-linear.png?v=3460" alt="linear.app 원본 vs 동결본" width="100%"></td>
-<td align="center"><img src="./docs/copy-openai.png?v=3460" alt="openai.com을 --headed로 Cloudflare 너머에서 도달해 진짜 CSS로 동결" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>linear.app</b> — 어두운 히어로를 자신의 Inter Variable로.</sub></td>
-<td align="center"><sub><b>openai.com</b> — <code>--headed</code>로 <b>Cloudflare 너머</b>에 도달. openai는 JS로 개인화된 SPA다. 동결본은 진짜 CSS를 지키지만, JS로 마운트되는 히어로는 다시 불러온 화면과 다른 정적 슬라이드를 보여준다. 충실도 결함이 아니라 정직한 SPA 한계다.</sub></td>
-</tr>
-</table>
 
 ---
 

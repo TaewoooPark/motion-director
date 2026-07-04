@@ -22,15 +22,21 @@
   <img src="https://img.shields.io/badge/Zero--dep%20capture%20·%20diff-000000?style=flat-square&logo=nodedotjs&logoColor=white&labelColor=000000" alt="Zero-dep capture + diff">
 </p>
 
-<p align="center">
-  <img src="./docs/archive-behavior.gif?v=3490" alt="An offline archive of vercel.com replaying: clicking Pricing performs a real client-side transition, content swapping with no reload, driven by the site's own JavaScript against cached data." width="100%">
-</p>
-<p align="center"><sub><em><b>⭐ The Archive — vercel.com, cloned so it <u>works</u>.</b> This is running <b>offline</b> from a recorded archive: the real Next.js code booted, and clicking a nav item performs a genuine <b>client-side transition</b> (content swaps, no reload) from the cached RSC data — <b>not a re-render, the actual behavior</b>. Tabs, filters, lists, and scroll-load work the same way, because it is the site's own code driving its own data.</em></sub></p>
+<table>
+<tr>
+<td width="50%"><img src="./docs/hero-shadcn-live.png?v=3530" alt="ui.shadcn.com — the live site" width="100%"></td>
+<td width="50%"><img src="./docs/hero-shadcn-copy.png?v=3530" alt="ui.shadcn.com — UIForge's copy, rendered fully offline, pixel-for-pixel identical to the live site" width="100%"></td>
+</tr>
+</table>
+<p align="center"><sub><em><b>One of these is a copy. Can you tell which?</b>  Left is the live <b>ui.shadcn.com</b>. Right is a copy UIForge made — rendered <b>offline, with every network request blocked</b>. They're not merely alike: the two images are <b>pixel-for-pixel identical — the same MD5 hash</b>. It's the real DOM, real CSS, and real webfonts frozen into one self-contained file.</em></sub></p>
 
-<p align="center">
-  <img src="./docs/showcase-linear.png?v=3520" alt="UIForge freeze of linear.app, the live site and the pixel-faithful freeze side by side in Linear's own Inter Variable webfont." width="100%">
-</p>
-<p align="center"><sub><em><b>The Freeze — linear.app, pixel-faithful.</b> The site's real CSS and <code>@font-face</code> kept, so the headline is <b>Linear's real Inter Variable</b>. And a <b>Rebuild</b> turns any of this into an editable React + Tailwind project with your content.</em></sub></p>
+<table>
+<tr>
+<td width="50%"><img src="./docs/hero-vercel-live.png?v=3530" alt="vercel.com — the live site" width="100%"></td>
+<td width="50%"><img src="./docs/hero-vercel-copy.png?v=3530" alt="vercel.com — UIForge's offline copy, identical to the pixel including the canvas hero" width="100%"></td>
+</tr>
+</table>
+<p align="center"><sub><em><b>Again: live vercel.com on the left, the offline copy on the right.</b> Even the <b>canvas hero</b> lands to the pixel — same MD5. And this is only the <b>Freeze</b>; the same capture also runs as a working <b>Archive</b> (tabs, transitions, scroll — ↓) and an editable React <b>Rebuild</b> with your content.</em></sub></p>
 
 ---
 
@@ -45,34 +51,6 @@ Most tools give you a still. UIForge gives you the **behavior** first, then the 
 | **Rebuild** (`uiforge-export`) | a **clean, componentized** Vite + React + Tailwind project — components, Tailwind classes, content externalized | building on the design, editing, shipping with **your** content |
 
 The **archive runs the real JavaScript** against cached data, so every interaction behaves exactly as the original — no reconstruction, because it *is* the behavior. (This is why it beats "Save As": a naive save of a modern app never records the XHR/API data the app fetches, so it opens as a broken shell — the archive records *and replays* that data.) The freeze renders identical to the live site (it *is* its CSS); the rebuild is diffed against that freeze — offline, deterministic — so componentization can't silently break fidelity.
-
-## Copied, five ways
-
-Five real sites, frozen from the capture alone — original (left) vs freeze (right):
-
-<p align="center">
-  <img src="./docs/copy-stripe.png?v=3460" alt="stripe.com original vs freeze, near pixel-identical" width="100%">
-</p>
-<p align="center"><sub><em><b>stripe.com</b> — the gradient hero, the logo row, the cookie banner: the freeze keeps the real CSS, so it renders identically (the lossy reconstruction collapsed this page to 40% height).</em></sub></p>
-
-<table>
-<tr>
-<td width="50%" align="center"><img src="./docs/copy-anthropic.png?v=3460" alt="anthropic.com original vs freeze" width="100%"></td>
-<td width="50%" align="center"><img src="./docs/copy-vercel.png?v=3460" alt="vercel.com original vs freeze, including the canvas triangle" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>anthropic.com</b> — headline, nav, body, and the orange band, all faithful.</sub></td>
-<td align="center"><sub><b>vercel.com</b> — even the <b>canvas triangle</b> hero renders (the freeze keeps the live page, so canvas comes free).</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="./docs/copy-linear.png?v=3460" alt="linear.app original vs freeze" width="100%"></td>
-<td align="center"><img src="./docs/copy-openai.png?v=3460" alt="openai.com reached past Cloudflare with --headed, frozen with its real CSS" width="100%"></td>
-</tr>
-<tr>
-<td align="center"><sub><b>linear.app</b> — the dark hero in its own Inter Variable.</sub></td>
-<td align="center"><sub><b>openai.com</b> — reached <b>past Cloudflare</b> with <code>--headed</code>. openai is a JS-personalized SPA: the freeze keeps its real CSS, but its JS-mounted hero shows a different static slide than a re-fetch — the honest SPA limit, not a fidelity gap.</sub></td>
-</tr>
-</table>
 
 ---
 
