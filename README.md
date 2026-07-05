@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Clone a website so it actually <em>works</em> — tabs, filters, lists, client-side transitions, motion, scroll — then also as a pixel-faithful <em>freeze</em> and a pixel-identical, editable React <em>restore</em>.</strong><br>
-  <em>Point it at a site. UIForge's flagship is the <b>Archive</b>: it records the site's real code + every network response and replays them offline, so the <b>original JavaScript runs against its own cached data</b> — click a tab and content swaps, filter a list and it updates, exactly as the original, because it <b>is</b> the behavior. It also makes a pixel-faithful <b>Freeze</b> (real CSS/fonts kept) and a clean componentized React + Tailwind <b>Rebuild</b> with <b>your</b> content — capturing webfonts, exact animation curves, hover/dropdowns, real videos, and reaching sites behind Cloudflare or a login.</em>
+  <em>Point it at a site. UIForge's flagship is the <b>Archive</b>: it records the site's real code + every network response and replays them offline, so the <b>original JavaScript runs against its own cached data</b> — click a tab and content swaps, filter a list and it updates, exactly as the original, because it <b>is</b> the behavior. It also makes a pixel-faithful <b>Freeze</b> (real CSS/fonts kept) and a clean componentized React + Tailwind <b>Restore</b> with <b>your</b> content — keeping the site's real classes and compiled CSS byte-exact, and reaching sites behind Cloudflare or a login.</em>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
 <td width="50%"><img src="./docs/hero-vercel-copy.png?v=3530" alt="vercel.com — UIForge's offline copy, identical to the pixel including the canvas hero" width="100%"></td>
 </tr>
 </table>
-<p align="center"><sub><em><b>Again: live vercel.com on the left, the offline copy on the right.</b> Even the <b>canvas hero</b> lands to the pixel — same MD5. And this is only the <b>Freeze</b>; the same capture also runs as a working <b>Archive</b> (tabs, transitions, scroll — ↓) and an editable React <b>Rebuild</b> with your content.</em></sub></p>
+<p align="center"><sub><em><b>Again: live vercel.com on the left, the offline copy on the right.</b> Even the <b>canvas hero</b> lands to the pixel — same MD5. And this is only the <b>Freeze</b>; the same capture also runs as a working <b>Archive</b> (tabs, transitions, scroll — ↓) and an editable React <b>Restore</b> with your content.</em></sub></p>
 
 ---
 
@@ -154,15 +154,17 @@ Or just say it — the agent picks the mode:
 
 ```
 Clone vercel.com so it actually works — the tabs and pricing should switch.   → Archive
-Make a site with the same design as stripe.com, but for my product (product.md). → Rebuild
+Make a site with the same design as stripe.com, but for my product (product.md). → Restore
 Give me an exact offline copy of linear.app's landing page.                     → Freeze
 ```
 
 **Behind Cloudflare or a login?** add `--headed --profile ./prof` (a persistent profile logs in once and reuses the session). The **Archive** mode always runs `--explore` — it clicks in-page controls and scrolls during capture so the data those interactions fetch is recorded; the more it explores, the more that works offline.
 
-> Running the tools directly: **Archive** — `node tools/uiforge-archive.mjs <url> --out-dir ./archive --explore` then `node ./archive/serve.mjs`. **Rebuild** — `capture → theme → export --assets`. **Freeze** — `uiforge-freeze <url> --inline`. See [The tools](#the-tools).
+> Running the tools directly: **Archive** — `node tools/uiforge-archive.mjs <url> --out-dir ./archive --explore` then `node ./archive/serve.mjs`. **Restore** — `uiforge-detect → uiforge-sourcemap → uiforge-restore`, proven by `uiforge-visualgate`. **Freeze** — `uiforge-freeze <url> --inline`. See [The tools](#the-tools).
 
 ## The pipeline
+
+> **Two editable paths — Restore is the current one.** The **capture → theme → export** pipeline shown below is the older *re-derive-from-computed-styles* **rebuild**; it still works (and is handy for a from-scratch, fully token-mapped Tailwind refactor), but it can drift on complex sites. The **Restore** path (`uiforge-detect → uiforge-sourcemap → uiforge-restore`, proven by `uiforge-visualgate`) *preserves* the real DOM + real compiled CSS, so it's pixel-identical by construction — prefer it for fidelity. Restore Tier B is a **static** snapshot (look + structure, no JS behavior); for behavior use the **Archive**. See [§B Restore](./commands/clone.md).
 
 ```
 reference URL  (--headed to clear a Cloudflare / bot wall)

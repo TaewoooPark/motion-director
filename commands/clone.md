@@ -9,7 +9,7 @@ Clone the reference in **$ARGUMENTS**. Pick the mode from the flags and the user
 - **`--restore`** / **`--react`**, or the user wants **editable / componentized source / their content** → **Restore** (§B) — pixel-identical editable source *from the archive*.
 - otherwise, or **`--freeze`** → **Freeze** (§C).
 
-Archive first (§A) whenever a Restore is wanted — the Restore consumes the archive, it never re-visits the live site.
+Archive first (§A) whenever a Restore is wanted — the Restore builds from the archive's captured DOM/CSS, not a fresh scrape. (One caveat: Tier B back-fills assets the archive never fetched from the live origin **by default** — pass `--no-fetch` to stay fully offline.)
 
 Let `ROOT` = `${CLAUDE_PLUGIN_ROOT}`. Before any `node` command, set `export NODE_PATH="$(npm root -g)"` so Playwright resolves. Work in a fresh output dir. `--headed`/`--profile <dir>` pass through to reach a site behind Cloudflare or a login (a persistent `--profile` reuses the clearance/session). `file://` inputs work too.
 
@@ -38,7 +38,9 @@ node ./clone-archive/serve.mjs      # → http://localhost:8787
 
 ## §B · Restore — archive → editable source, pixel-identical (tiered)  ⭐
 
-Turn the **archive** (never the live site) into editable source that renders **pixel-identical to the original** — by *preservation*, not reconstruction. Best-fidelity tier first, always proven by a pixel gate. (This replaces the old lossy "re-derive styles from computed values" rebuild, which drifted.)
+Turn the **archive** into editable source that renders **pixel-identical to the original** — by *preservation*, not reconstruction. Best-fidelity tier first, always proven by a pixel gate. (This replaces the old lossy "re-derive styles from computed values" rebuild, which drifted.)
+
+**What Restore is and isn't:** it preserves the *look + structure* as clean, editable React — **not** the behavior. Tier B is a **static snapshot** (the archive's rendered DOM → JSX; scripts are dropped), so CSS-driven states (`:hover`, `<details>`, animations) survive but JS behavior (tab-switching, filters, click-to-swap) does **not**. For a copy that *behaves*, use the **Archive** (§A) — Restore and Archive are complementary, not equivalent.
 
 ```bash
 # 0 · detect the stack from the archive (drives output idiom + which tier applies)
@@ -55,7 +57,7 @@ node $ROOT/tools/uiforge-visualgate.mjs --a ./restore --b ./clone/ref.png
 ```
 
 - **Try Tier A first.** If `uiforge-sourcemap` recovers app files, you have the site's **real components** — original names, comments, types, `src/` paths (it even recovers the exact `MobileMenu.tsx` a static render can't reproduce). Many sites strip maps; it says so and you fall back to Tier B. ⚠ recovered proprietary source is for study/redesign, not wholesale re-publishing.
-- **Tier B always yields a buildable, pixel-identical project**: `cd ./restore && npm install && npm run dev`. It loads the archive's real DOM, keeps every class **byte-exact**, and ships the site's **real compiled CSS + real assets** — so fidelity is the *default*, not a target chased with an LLM. It self-completes assets the archive lazily skipped; `--no-fetch` stays fully offline.
+- **Tier B always yields a buildable, pixel-identical project**: `cd ./restore && npm install && npm run dev`. It loads the archive's real DOM, keeps every class **byte-exact**, and ships the site's **real compiled CSS + real assets** — so fidelity is the *default*, not a target chased with an LLM. It self-completes assets the archive lazily skipped by fetching them from the real origin (Next.js lazy-loads font subsets, so the archive misses most `@font-face` files) — so **the default touches the network**; `--no-fetch` skips that and stays fully offline.
 - **Always gate.** Read the mismatch %: static / marketing / docs sites (e.g. shadcn) hit **~0% — pixel-identical**; a WebGL canvas hero or JS-state-driven UI has honest limits — and those are exactly the components Tier A recovers as source. The worst-region bbox tells you where to look.
 - **`--content <md>`**: after Tier B, swap the reference's copy/images for the user's, keeping structure, classes, and assets.
 - **Tier C — reference only** (no maps, but you need to read the site's logic): `node $ROOT/tools/uiforge-debundle.mjs ./clone-archive --out-dir ./reference` → readable, **not** faithful (names/types erased). Real source is Tier A; behavior is the Archive.
