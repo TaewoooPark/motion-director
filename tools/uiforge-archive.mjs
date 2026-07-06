@@ -198,6 +198,7 @@ http.createServer((req, res) => {
   if (!e) { res.writeHead(204, { 'access-control-allow-origin': '*' }); return res.end() }
   let body = readFileSync(path.join(HERE, 'files', e.file))
   const h = Object.assign({}, e.headers, { 'access-control-allow-origin': '*', 'cache-control': 'no-store' })
+  for (const k of Object.keys(h)) h[k] = String(h[k]).replace(/[\\r\\n]+\\s*/g, ', ')
   if ((e.ct || '').includes('text/html')) { let s = body.toString('utf8').replace(/<head[^>]*>/i, m => m + inject); body = Buffer.from(s) }
   h['content-length'] = body.length
   res.writeHead(e.status && e.status < 500 ? e.status : 200, h); res.end(body)
